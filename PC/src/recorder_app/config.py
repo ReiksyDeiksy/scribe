@@ -17,6 +17,8 @@ RECORDING_SOURCE_MICROPHONE = "microphone"
 RECORDING_SOURCE_SYSTEM_AUDIO_AND_MICROPHONE = "system_audio_microphone"
 RECORDING_SOURCE_APPLICATION_AUDIO = "application_audio"
 DEFAULT_PUSH_TO_TRANSCRIBE_HOTKEY = "ctrl+alt+space"
+DEFAULT_DICTATION_RETENTION = "2_days"
+DICTATION_RETENTION_DAYS = {"2_days": 2, "7_days": 7, "forever": None}
 
 
 def application_state_directory() -> Path:
@@ -62,6 +64,7 @@ class AppSettings:
     application_audio_session_label: str = ""
     application_audio_include_microphone: bool = False
     ui_language: str = "de"
+    dictation_retention: str = DEFAULT_DICTATION_RETENTION
 
     @classmethod
     def with_defaults(cls) -> "AppSettings":
@@ -119,6 +122,8 @@ class SettingsStore:
 
         settings = AppSettings(**merged)
         settings.ui_language = normalize_ui_language(settings.ui_language)
+        if settings.dictation_retention not in DICTATION_RETENTION_DAYS:
+            settings.dictation_retention = DEFAULT_DICTATION_RETENTION
         settings.ensure_directories()
         return settings
 

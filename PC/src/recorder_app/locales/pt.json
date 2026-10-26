@@ -209,5 +209,11 @@
   "Push: bitte Strg+V": "Push: use Ctrl+V",
   "Automatisches Einfügen nicht möglich. Der Text ist mit Strg+V verfügbar.": "Não foi possível inserir automaticamente. Cole o texto com Ctrl+V.",
   "scribe läuft bereits. Bitte verwende das offene Fenster.": "O scribe já está aberto. Use a janela existente.",
-  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "Iniciar: {start}. Parar: {stop}. Manter para transcrever: {push}. Atalhos iguais alternam iniciar e parar. Mantenha o atalho premido, fale ao microfone e solte. O texto é inserido no campo ativo original. Se mudar de janela ou a inserção falhar, o texto fica na área de transferência para Ctrl+V."
+  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "Iniciar: {start}. Parar: {stop}. Manter para transcrever: {push}. Atalhos iguais alternam iniciar e parar. Mantenha o atalho premido, fale ao microfone e solte. O texto é inserido no campo ativo original. Se mudar de janela ou a inserção falhar, o texto fica na área de transferência para Ctrl+V.",
+  "2 Tage": "2 dias",
+  "7 Tage": "7 dias",
+  "Unbegrenzt": "Para sempre",
+  "Diktatverlauf aufbewahren": "Manter o histórico de ditados",
+  "Automatisch gespeicherte Diktate werden beim Start und stündlich bereinigt. Normale Transkripte und exportierte Dateien bleiben erhalten.": "Os ditados guardados automaticamente são limpos ao iniciar e a cada hora. As transcrições normais e os ficheiros exportados são mantidos.",
+  "Diktat abgelaufen. Text kann weiterhin exportiert werden.": "O ditado expirou. O texto ainda pode ser exportado."
 }

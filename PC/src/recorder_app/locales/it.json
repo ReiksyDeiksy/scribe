@@ -209,5 +209,11 @@
   "Push: bitte Strg+V": "Push: usa Ctrl+V",
   "Automatisches Einfügen nicht möglich. Der Text ist mit Strg+V verfügbar.": "Inserimento automatico non disponibile. Incolla il testo con Ctrl+V.",
   "scribe läuft bereits. Bitte verwende das offene Fenster.": "scribe è già aperto. Usa la finestra esistente.",
-  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "Avvio: {start}. Arresto: {stop}. Tieni premuto per trascrivere: {push}. Scorciatoie uguali alternano avvio e arresto. Tieni premuta la scorciatoia, parla nel microfono e rilasciala. Il testo viene inserito nel campo attivo originale. Se cambi finestra o l’inserimento non riesce, il testo resta negli appunti per Ctrl+V."
+  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "Avvio: {start}. Arresto: {stop}. Tieni premuto per trascrivere: {push}. Scorciatoie uguali alternano avvio e arresto. Tieni premuta la scorciatoia, parla nel microfono e rilasciala. Il testo viene inserito nel campo attivo originale. Se cambi finestra o l’inserimento non riesce, il testo resta negli appunti per Ctrl+V.",
+  "2 Tage": "2 giorni",
+  "7 Tage": "7 giorni",
+  "Unbegrenzt": "Per sempre",
+  "Diktatverlauf aufbewahren": "Conserva la cronologia delle dettature",
+  "Automatisch gespeicherte Diktate werden beim Start und stündlich bereinigt. Normale Transkripte und exportierte Dateien bleiben erhalten.": "Le dettature salvate automaticamente vengono eliminate alla scadenza all’avvio e ogni ora. Le trascrizioni normali e i file esportati vengono conservati.",
+  "Diktat abgelaufen. Text kann weiterhin exportiert werden.": "La dettatura è scaduta. Il testo può ancora essere esportato."
 }

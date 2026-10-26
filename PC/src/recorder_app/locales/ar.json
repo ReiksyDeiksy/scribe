@@ -209,5 +209,11 @@
   "Push: bitte Strg+V": "الإملاء: استخدم Ctrl+V",
   "Automatisches Einfügen nicht möglich. Der Text ist mit Strg+V verfügbar.": "تعذر الإدراج التلقائي. الصق النص باستخدام Ctrl+V.",
   "scribe läuft bereits. Bitte verwende das offene Fenster.": "scribe يعمل بالفعل. استخدم النافذة المفتوحة.",
-  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "البدء: {start}. الإيقاف: {stop}. اضغط مطولاً للنسخ: {push}. تطابق اختصاري البدء والإيقاف يبدّل بينهما. اضغط مطولاً على الاختصار وتحدث في الميكروفون ثم حرر المفاتيح. يُدرج النص في حقل الكتابة الأصلي النشط. إذا تغيرت النافذة أو فشل الإدراج، يبقى النص في الحافظة للصقه باستخدام Ctrl+V."
+  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "البدء: {start}. الإيقاف: {stop}. اضغط مطولاً للنسخ: {push}. تطابق اختصاري البدء والإيقاف يبدّل بينهما. اضغط مطولاً على الاختصار وتحدث في الميكروفون ثم حرر المفاتيح. يُدرج النص في حقل الكتابة الأصلي النشط. إذا تغيرت النافذة أو فشل الإدراج، يبقى النص في الحافظة للصقه باستخدام Ctrl+V.",
+  "2 Tage": "يومان",
+  "7 Tage": "7 أيام",
+  "Unbegrenzt": "دائمًا",
+  "Diktatverlauf aufbewahren": "الاحتفاظ بسجل الإملاء",
+  "Automatisch gespeicherte Diktate werden beim Start und stündlich bereinigt. Normale Transkripte und exportierte Dateien bleiben erhalten.": "تُنظَّف الإملاءات المحفوظة تلقائيًا عند بدء التشغيل وكل ساعة. يُحتفظ بالنصوص العادية والملفات المُصدَّرة.",
+  "Diktat abgelaufen. Text kann weiterhin exportiert werden.": "انتهت مدة الاحتفاظ بالإملاء. لا يزال بالإمكان تصدير النص."
 }

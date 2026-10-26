@@ -209,5 +209,11 @@
   "Push: bitte Strg+V": "Push: Ctrl+V kullanın",
   "Automatisches Einfügen nicht möglich. Der Text ist mit Strg+V verfügbar.": "Otomatik ekleme mümkün değil. Metni Ctrl+V ile yapıştırın.",
   "scribe läuft bereits. Bitte verwende das offene Fenster.": "scribe zaten çalışıyor. Açık pencereyi kullanın.",
-  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "Başlat: {start}. Durdur: {stop}. Basılı tutarak yazıya dök: {push}. Aynı başlat/durdur kısayolları geçiş yapar. Kısayolu basılı tutun, mikrofona konuşun ve bırakın. Metin, başlangıçta odaklanan alana eklenir. Pencere değişirse veya ekleme başarısız olursa metin Ctrl+V için panoda kalır."
+  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "Başlat: {start}. Durdur: {stop}. Basılı tutarak yazıya dök: {push}. Aynı başlat/durdur kısayolları geçiş yapar. Kısayolu basılı tutun, mikrofona konuşun ve bırakın. Metin, başlangıçta odaklanan alana eklenir. Pencere değişirse veya ekleme başarısız olursa metin Ctrl+V için panoda kalır.",
+  "2 Tage": "2 gün",
+  "7 Tage": "7 gün",
+  "Unbegrenzt": "Süresiz",
+  "Diktatverlauf aufbewahren": "Dikte geçmişini sakla",
+  "Automatisch gespeicherte Diktate werden beim Start und stündlich bereinigt. Normale Transkripte und exportierte Dateien bleiben erhalten.": "Otomatik kaydedilen dikteler başlangıçta ve her saat temizlenir. Normal dökümler ve dışa aktarılan dosyalar saklanır.",
+  "Diktat abgelaufen. Text kann weiterhin exportiert werden.": "Diktenin saklama süresi doldu. Metin hâlâ dışa aktarılabilir."
 }

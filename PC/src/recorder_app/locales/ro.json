@@ -209,5 +209,11 @@
   "Push: bitte Strg+V": "Push: folosește Ctrl+V",
   "Automatisches Einfügen nicht möglich. Der Text ist mit Strg+V verfügbar.": "Inserarea automată nu este disponibilă. Lipește textul cu Ctrl+V.",
   "scribe läuft bereits. Bitte verwende das offene Fenster.": "scribe rulează deja. Folosește fereastra deschisă.",
-  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "Start: {start}. Stop: {stop}. Ține pentru transcriere: {push}. Aceleași taste pentru start și stop comută înregistrarea. Ține combinația apăsată, vorbește în microfon și eliberează tastele. Textul este inserat în câmpul activ inițial. Dacă schimbi fereastra sau inserarea eșuează, textul rămâne în clipboard pentru Ctrl+V."
+  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "Start: {start}. Stop: {stop}. Ține pentru transcriere: {push}. Aceleași taste pentru start și stop comută înregistrarea. Ține combinația apăsată, vorbește în microfon și eliberează tastele. Textul este inserat în câmpul activ inițial. Dacă schimbi fereastra sau inserarea eșuează, textul rămâne în clipboard pentru Ctrl+V.",
+  "2 Tage": "2 zile",
+  "7 Tage": "7 zile",
+  "Unbegrenzt": "Nelimitat",
+  "Diktatverlauf aufbewahren": "Păstrează istoricul dictărilor",
+  "Automatisch gespeicherte Diktate werden beim Start und stündlich bereinigt. Normale Transkripte und exportierte Dateien bleiben erhalten.": "Dictările salvate automat sunt curățate la pornire și la fiecare oră. Transcrierile obișnuite și fișierele exportate sunt păstrate.",
+  "Diktat abgelaufen. Text kann weiterhin exportiert werden.": "Dictarea a expirat. Textul poate fi exportat în continuare."
 }

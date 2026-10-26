@@ -209,5 +209,11 @@
   "Push: bitte Strg+V": "Push: нажмите Ctrl+V",
   "Automatisches Einfügen nicht möglich. Der Text ist mit Strg+V verfügbar.": "Автоматическая вставка недоступна. Вставьте текст сочетанием Ctrl+V.",
   "scribe läuft bereits. Bitte verwende das offene Fenster.": "scribe уже запущен. Используйте открытое окно.",
-  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "Старт: {start}. Стоп: {stop}. Удерживать для транскрипции: {push}. Одинаковые сочетания переключают старт и стоп. Удерживайте сочетание, говорите в микрофон и отпустите клавиши. Текст вставляется в исходное активное поле. При смене окна или ошибке вставки текст остается в буфере обмена для Ctrl+V."
+  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "Старт: {start}. Стоп: {stop}. Удерживать для транскрипции: {push}. Одинаковые сочетания переключают старт и стоп. Удерживайте сочетание, говорите в микрофон и отпустите клавиши. Текст вставляется в исходное активное поле. При смене окна или ошибке вставки текст остается в буфере обмена для Ctrl+V.",
+  "2 Tage": "2 дня",
+  "7 Tage": "7 дней",
+  "Unbegrenzt": "Бессрочно",
+  "Diktatverlauf aufbewahren": "Хранить историю диктовки",
+  "Automatisch gespeicherte Diktate werden beim Start und stündlich bereinigt. Normale Transkripte und exportierte Dateien bleiben erhalten.": "Автоматически сохранённые диктовки очищаются при запуске и каждый час. Обычные расшифровки и экспортированные файлы сохраняются.",
+  "Diktat abgelaufen. Text kann weiterhin exportiert werden.": "Срок хранения диктовки истёк. Текст по-прежнему можно экспортировать."
 }

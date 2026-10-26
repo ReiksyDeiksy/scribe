@@ -209,5 +209,11 @@
   "Push: bitte Strg+V": "Push: натисніть Ctrl+V",
   "Automatisches Einfügen nicht möglich. Der Text ist mit Strg+V verfügbar.": "Автоматичне вставлення недоступне. Вставте текст за допомогою Ctrl+V.",
   "scribe läuft bereits. Bitte verwende das offene Fenster.": "scribe вже запущено. Скористайтеся відкритим вікном.",
-  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "Старт: {start}. Стоп: {stop}. Утримувати для транскрипції: {push}. Однакові скорочення перемикають старт і стоп. Утримуйте скорочення, говоріть у мікрофон і відпустіть клавіші. Текст вставляється у початкове активне поле. При зміні вікна або помилці вставлення текст залишається в буфері обміну для Ctrl+V."
+  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "Старт: {start}. Стоп: {stop}. Утримувати для транскрипції: {push}. Однакові скорочення перемикають старт і стоп. Утримуйте скорочення, говоріть у мікрофон і відпустіть клавіші. Текст вставляється у початкове активне поле. При зміні вікна або помилці вставлення текст залишається в буфері обміну для Ctrl+V.",
+  "2 Tage": "2 дні",
+  "7 Tage": "7 днів",
+  "Unbegrenzt": "Безстроково",
+  "Diktatverlauf aufbewahren": "Зберігати історію диктування",
+  "Automatisch gespeicherte Diktate werden beim Start und stündlich bereinigt. Normale Transkripte und exportierte Dateien bleiben erhalten.": "Автоматично збережені диктування очищуються під час запуску та щогодини. Звичайні транскрипції та експортовані файли зберігаються.",
+  "Diktat abgelaufen. Text kann weiterhin exportiert werden.": "Термін зберігання диктування минув. Текст усе ще можна експортувати."
 }

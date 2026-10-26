@@ -209,5 +209,11 @@
   "Push: bitte Strg+V": "音声入力：Ctrl+V で貼り付け",
   "Automatisches Einfügen nicht möglich. Der Text ist mit Strg+V verfügbar.": "自動挿入できません。Ctrl+V でテキストを貼り付けてください。",
   "scribe läuft bereits. Bitte verwende das offene Fenster.": "scribe は既に起動しています。開いているウィンドウを使用してください。",
-  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "開始：{start}。停止：{stop}。長押しで文字起こし：{push}。開始と停止が同じキーなら切り替え動作になります。ショートカットを押したままマイクに話し、キーを離してください。元のアクティブな入力欄に文字が挿入されます。ウィンドウが変わった場合や挿入に失敗した場合はクリップボードに残り、Ctrl+V で貼り付けられます。"
+  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "開始：{start}。停止：{stop}。長押しで文字起こし：{push}。開始と停止が同じキーなら切り替え動作になります。ショートカットを押したままマイクに話し、キーを離してください。元のアクティブな入力欄に文字が挿入されます。ウィンドウが変わった場合や挿入に失敗した場合はクリップボードに残り、Ctrl+V で貼り付けられます。",
+  "2 Tage": "2日間",
+  "7 Tage": "7日間",
+  "Unbegrenzt": "無期限",
+  "Diktatverlauf aufbewahren": "音声入力の履歴を保持",
+  "Automatisch gespeicherte Diktate werden beim Start und stündlich bereinigt. Normale Transkripte und exportierte Dateien bleiben erhalten.": "自動保存された音声入力は起動時と1時間ごとに整理されます。通常の文字起こしとエクスポートしたファイルは保持されます。",
+  "Diktat abgelaufen. Text kann weiterhin exportiert werden.": "音声入力の保存期間が過ぎました。テキストは引き続きエクスポートできます。"
 }

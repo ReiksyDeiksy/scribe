@@ -58,6 +58,7 @@ from .audio import (
 from .config import (
     APP_NAME,
     AppSettings,
+    DEFAULT_DICTATION_RETENTION,
     RECORDING_SOURCE_APPLICATION_AUDIO,
     RECORDING_SOURCE_MICROPHONE,
     RECORDING_SOURCE_SYSTEM_AUDIO,
@@ -67,6 +68,7 @@ from .config import (
 )
 from .hotkeys import GlobalHotkeyManager, HotkeyRegistrationError, keyboard_to_qt_hotkey, normalize_hotkey
 from .dictation import WindowsDictationInput
+from .dictation_history import cleanup_dictation_history, preserve_dictation_transcript
 from .i18n import UI_LANGUAGES, UiText, normalize_ui_language, translate
 from .help_text import HELP_SECTIONS
 from .transcription import (
@@ -88,6 +90,8 @@ LANGUAGE_OPTIONS = {
 }
 
 MODEL_OPTIONS = ["tiny", "base", "small", "medium", "large-v3", "turbo"]
+DICTATION_RETENTION_OPTIONS = {"2 Tage": "2_days", "7 Tage": "7_days", "Unbegrenzt": "forever"}
+DICTATION_CLEANUP_INTERVAL_MS = 60 * 60 * 1000
 EXPORT_FILTER = "Textdatei (*.txt);;SubRip Untertitel (*.srt);;WebVTT Untertitel (*.vtt)"
 RECORDING_SOURCE_OPTIONS = {
     "Systemaudio (WASAPI Loopback)": RECORDING_SOURCE_SYSTEM_AUDIO,
@@ -801,6 +805,9 @@ class MainWindow(QMainWindow):
         self.clipboard_restore_timer = QTimer(self)
         self.clipboard_restore_timer.setSingleShot(True)
         self.clipboard_restore_timer.timeout.connect(self._restore_dictation_clipboard)
+        self.dictation_cleanup_timer = QTimer(self)
+        self.dictation_cleanup_timer.setInterval(DICTATION_CLEANUP_INTERVAL_MS)
+        self.dictation_cleanup_timer.timeout.connect(self._cleanup_expired_dictations)
         self.dictation_bar = DictationBar()
         self.available_audio_devices: list[LoopbackDeviceInfo] = []
         self.available_microphone_devices: list[MicrophoneDeviceInfo] = []
@@ -826,6 +833,8 @@ class MainWindow(QMainWindow):
         self._apply_recording_source_to_ui()
         self._warn_if_saved_device_missing()
         self._apply_ui_language()
+        self._cleanup_expired_dictations()
+        self.dictation_cleanup_timer.start()
 
     def _tr(self, source: str, **values: object) -> str:
         return translate(self.ui_language, source, **values)
@@ -857,6 +866,7 @@ class MainWindow(QMainWindow):
             (self.recording_source_combo, RECORDING_SOURCE_OPTIONS),
             (self.performance_profile_combo, TRANSCRIPTION_PROFILE_OPTIONS),
             (self.transcript_format_combo, TRANSCRIPT_FORMAT_OPTIONS),
+            (self.dictation_retention_combo, DICTATION_RETENTION_OPTIONS),
             (self.audio_device_combo, {"Standard-Wiedergabegerät": ""}),
             (self.microphone_device_combo, {"Standard-Mikrofon": ""}),
             (self.app_audio_session_combo, {"Keine App-Audio-Session ausgewählt": ""}),
@@ -984,6 +994,10 @@ class MainWindow(QMainWindow):
         self.cleanup_recordings_checkbox = self._text_widget(ToggleCheckBox, 'Aufnahmen nach Transkription löschen')
         self.cleanup_recordings_checkbox.setChecked(True)
         self._set_ui_text(self.cleanup_recordings_checkbox, 'Löscht app-eigene WAV-Aufnahmen auch bei Abbruch oder Fehlern der Transkription. Importierte Dateien bleiben erhalten.', setter='setToolTip')
+        self.dictation_retention_combo = WheelGuardComboBox()
+        for label, value in DICTATION_RETENTION_OPTIONS.items():
+            self.dictation_retention_combo.addItem(label, value)
+        self._set_ui_text(self.dictation_retention_combo, 'Automatisch gespeicherte Diktate werden beim Start und stündlich bereinigt. Normale Transkripte und exportierte Dateien bleiben erhalten.', setter='setToolTip')
 
         self.recording_source_combo = WheelGuardComboBox()
         for label, value in RECORDING_SOURCE_OPTIONS.items():
@@ -1152,6 +1166,7 @@ class MainWindow(QMainWindow):
         add_setting("Performance", self.performance_profile_combo)
         add_setting("Textformat", self.transcript_format_combo)
         add_setting("Aufnahme-Dateien", self.cleanup_recordings_checkbox)
+        add_setting("Diktatverlauf aufbewahren", self.dictation_retention_combo)
         add_setting("Start-Hotkey", self.start_hotkey_edit)
         add_setting("Stopp-Hotkey", self.stop_hotkey_edit)
         add_setting("Push-to-Transcribe", self.push_to_transcribe_hotkey_edit)
@@ -1396,6 +1411,16 @@ class MainWindow(QMainWindow):
             job.delete_recorded_audio_after_transcription,
         )
         return job
+
+    def _cleanup_expired_dictations(self) -> None:
+        try:
+            deleted = cleanup_dictation_history(self.settings.output_path(), self.settings.dictation_retention)
+        except OSError:
+            logger.exception("Diktatverlauf konnte nicht bereinigt werden")
+            return
+        if self.current_transcript_path in deleted:
+            self.current_transcript_path = None
+            self._set_ui_text(self.autosave_value, 'Diktat abgelaufen. Text kann weiterhin exportiert werden.')
 
     def _cleanup_recorded_audio_after_transcription(self, result: TranscriptionResult | None = None) -> None:
         job = self.active_transcription_job
@@ -1920,6 +1945,7 @@ Speicherpfad, Sprache, Modell und Hotkeys findest du oben unter "Einstellungen".
         self.cleanup_recordings_checkbox.setChecked(
             self.settings.delete_recorded_audio_after_transcription
         )
+        self._set_combo_data(self.dictation_retention_combo, self.settings.dictation_retention)
         self.app_audio_microphone_checkbox.setChecked(self.settings.application_audio_include_microphone)
         saved_source = self.settings.recording_source
         if saved_source == RECORDING_SOURCE_APPLICATION_AUDIO and not self.app_audio_capability.supported:
@@ -2011,6 +2037,9 @@ Speicherpfad, Sprache, Modell und Hotkeys findest du oben unter "Einstellungen".
             return False
 
         self.settings_store.save(self.settings)
+        if (self.settings.output_directory != previous_settings.output_directory
+                or self.settings.dictation_retention != previous_settings.dictation_retention):
+            self._cleanup_expired_dictations()
         self._clear_error()
         logger.info("Einstellungen gespeichert")
         if show_feedback:
@@ -2064,6 +2093,7 @@ Speicherpfad, Sprache, Modell und Hotkeys findest du oben unter "Einstellungen".
             ),
             show_timestamps=self.timestamps_checkbox.isChecked(),
             delete_recorded_audio_after_transcription=self.cleanup_recordings_checkbox.isChecked(),
+            dictation_retention=str(self.dictation_retention_combo.currentData() or DEFAULT_DICTATION_RETENTION),
             recording_source=selected_recording_source,
             audio_device_id=str(self.audio_device_combo.currentData() or ""),
             microphone_device_id=str(self.microphone_device_combo.currentData() or ""),
@@ -2456,6 +2486,7 @@ Speicherpfad, Sprache, Modell und Hotkeys findest du oben unter "Einstellungen".
             performance_profile=self.settings.transcription_profile,
             transcript_format=getattr(self.settings, "transcript_format", TRANSCRIPT_FORMAT_COMPACT),
             show_timestamps=self.settings.show_timestamps,
+            is_dictation=auto_copy_to_clipboard,
         )
 
         self.transcription_thread = QThread(self)
@@ -2732,6 +2763,7 @@ Speicherpfad, Sprache, Modell und Hotkeys findest du oben unter "Einstellungen".
                     self.transcript_format_combo.currentData() or TRANSCRIPT_FORMAT_COMPACT
                 ),
             )
+            preserve_dictation_transcript(target_path)
             target_path.write_text(export_content, encoding="utf-8")
         except ValueError as exc:
             logger.warning("Exportformat konnte nicht erzeugt werden: %s", exc)
@@ -2859,6 +2891,7 @@ Speicherpfad, Sprache, Modell und Hotkeys findest du oben unter "Einstellungen".
             not is_recording and not is_transcribing and not self.timestamps_checkbox.isChecked()
         )
         self.cleanup_recordings_checkbox.setEnabled(not is_recording and not is_transcribing)
+        self.dictation_retention_combo.setEnabled(not is_recording and not is_transcribing)
         self.save_settings_button.setEnabled(not is_recording and not is_transcribing)
         self._apply_recording_source_to_ui()
 
@@ -2880,6 +2913,7 @@ Speicherpfad, Sprache, Modell und Hotkeys findest du oben unter "Einstellungen".
             return
 
         logger.info("Anwendung wird geschlossen")
+        self.dictation_cleanup_timer.stop()
         self._restore_dictation_clipboard()
         self.dictation_bar.close()
         self.hotkey_manager.shutdown()

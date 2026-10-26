@@ -209,5 +209,11 @@
   "Push: bitte Strg+V": "Push: usa Ctrl+V",
   "Automatisches Einfügen nicht möglich. Der Text ist mit Strg+V verfügbar.": "No se pudo insertar automáticamente. Pega el texto con Ctrl+V.",
   "scribe läuft bereits. Bitte verwende das offene Fenster.": "scribe ya está abierto. Usa la ventana existente.",
-  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "Iniciar: {start}. Detener: {stop}. Mantener para transcribir: {push}. Los atajos iguales alternan inicio y parada. Mantén pulsado el atajo, habla al micrófono y suéltalo. El texto se inserta en el campo activo original. Si cambia la ventana o falla la inserción, el texto queda en el portapapeles para Ctrl+V."
+  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "Iniciar: {start}. Detener: {stop}. Mantener para transcribir: {push}. Los atajos iguales alternan inicio y parada. Mantén pulsado el atajo, habla al micrófono y suéltalo. El texto se inserta en el campo activo original. Si cambia la ventana o falla la inserción, el texto queda en el portapapeles para Ctrl+V.",
+  "2 Tage": "2 días",
+  "7 Tage": "7 días",
+  "Unbegrenzt": "Para siempre",
+  "Diktatverlauf aufbewahren": "Conservar el historial de dictado",
+  "Automatisch gespeicherte Diktate werden beim Start und stündlich bereinigt. Normale Transkripte und exportierte Dateien bleiben erhalten.": "Los dictados guardados automáticamente se limpian al iniciar y cada hora. Se conservan las transcripciones normales y los archivos exportados.",
+  "Diktat abgelaufen. Text kann weiterhin exportiert werden.": "El dictado ha caducado. El texto todavía se puede exportar."
 }

@@ -13,6 +13,7 @@ from PySide6.QtCore import QObject, Signal, Slot
 import soundfile as sf
 
 from .config import ensure_unique_path
+from .dictation_history import save_dictation_transcript
 
 logger = logging.getLogger(__name__)
 
@@ -131,6 +132,7 @@ class TranscriptionRequest:
     performance_profile: str = TRANSCRIPTION_PROFILE_FAST
     transcript_format: str = TRANSCRIPT_FORMAT_COMPACT
     show_timestamps: bool = True
+    is_dictation: bool = False
 
 
 @dataclass(slots=True)
@@ -890,11 +892,14 @@ class TranscriptionService:
 
         self._report(on_progress, 98, "Transkript wird gespeichert ...")
         write_started_at = time.perf_counter()
-        transcript_path = self._write_transcript(
-            request.output_directory,
-            request.audio_path,
-            transcript_text,
-        )
+        if request.is_dictation:
+            transcript_path = save_dictation_transcript(request.output_directory, transcript_text)
+        else:
+            transcript_path = self._write_transcript(
+                request.output_directory,
+                request.audio_path,
+                transcript_text,
+            )
         write_seconds = time.perf_counter() - write_started_at
         total_seconds = time.perf_counter() - total_started_at
         realtime_factor = (total_seconds / estimated_duration) if estimated_duration > 0 else 0.0

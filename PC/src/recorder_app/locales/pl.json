@@ -209,5 +209,11 @@
   "Push: bitte Strg+V": "Push: użyj Ctrl+V",
   "Automatisches Einfügen nicht möglich. Der Text ist mit Strg+V verfügbar.": "Automatyczne wstawianie niemożliwe. Wklej tekst za pomocą Ctrl+V.",
   "scribe läuft bereits. Bitte verwende das offene Fenster.": "scribe już działa. Użyj otwartego okna.",
-  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "Start: {start}. Stop: {stop}. Przytrzymaj, aby transkrybować: {push}. Identyczne skróty przełączają start i stop. Przytrzymaj skrót, mów do mikrofonu i zwolnij klawisze. Tekst zostanie wstawiony do pierwotnego aktywnego pola. Jeśli zmienisz okno lub wstawienie się nie powiedzie, tekst pozostanie w schowku do wklejenia przez Ctrl+V."
+  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "Start: {start}. Stop: {stop}. Przytrzymaj, aby transkrybować: {push}. Identyczne skróty przełączają start i stop. Przytrzymaj skrót, mów do mikrofonu i zwolnij klawisze. Tekst zostanie wstawiony do pierwotnego aktywnego pola. Jeśli zmienisz okno lub wstawienie się nie powiedzie, tekst pozostanie w schowku do wklejenia przez Ctrl+V.",
+  "2 Tage": "2 dni",
+  "7 Tage": "7 dni",
+  "Unbegrenzt": "Bezterminowo",
+  "Diktatverlauf aufbewahren": "Przechowuj historię dyktowania",
+  "Automatisch gespeicherte Diktate werden beim Start und stündlich bereinigt. Normale Transkripte und exportierte Dateien bleiben erhalten.": "Automatycznie zapisane dyktowania są czyszczone przy uruchomieniu i co godzinę. Zwykłe transkrypcje i wyeksportowane pliki są zachowywane.",
+  "Diktat abgelaufen. Text kann weiterhin exportiert werden.": "Dyktowanie wygasło. Tekst nadal można wyeksportować."
 }

@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 import unittest
 from pathlib import Path
@@ -24,6 +25,9 @@ class ModernUiTests(unittest.TestCase):
             QFontDatabase.addApplicationFont("C:/Windows/Fonts/segoeui.ttf")
 
     def setUp(self):
+        self.root = Path("output").resolve() / f"ui-test-{uuid4().hex}"
+        self.root.mkdir(parents=True)
+        self.addCleanup(shutil.rmtree, self.root)
         self.patches = [patch.object(ui, "application_state_directory", return_value=Path("output")),
                         patch.object(ui, "TranscriptionService"), patch.object(ui, "GlobalHotkeyManager"),
                         patch.object(ui, "AudioCaptureService"), patch.object(ui.MainWindow, "_register_hotkeys")]
@@ -35,7 +39,7 @@ class ModernUiTests(unittest.TestCase):
         self.service.list_application_audio_sessions.return_value = []
         self.service.application_audio_capability.return_value = ui.ApplicationAudioCapability(supported=True, reason="test")
         store = MagicMock()
-        store.load.return_value = AppSettings(output_directory=str(Path("output").resolve()), recording_source=RECORDING_SOURCE_APPLICATION_AUDIO)
+        store.load.return_value = AppSettings(output_directory=str(self.root), recording_source=RECORDING_SOURCE_APPLICATION_AUDIO)
         self.window = ui.MainWindow(store)
         self.window.show()
         self.app.processEvents()
@@ -84,6 +88,76 @@ class ModernUiTests(unittest.TestCase):
         self.assertTrue(w.dictation_bar.testAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating))
         self.assertTrue(w.dictation_bar.windowFlags() & Qt.WindowType.WindowDoesNotAcceptFocus)
         w.duration_timer.stop()
+
+    def test_retention_form_saves_all_options_and_survives_language_switch(self):
+        w = self.window
+        w._select_source(RECORDING_SOURCE_SYSTEM_AUDIO)
+        self.assertEqual(w.dictation_retention_combo.currentData(), "2_days")
+        for retention in ("7_days", "forever", "2_days"):
+            w._set_combo_data(w.dictation_retention_combo, retention)
+            w._set_combo_data(w.ui_language_combo, "ro")
+            self.assertEqual(w.dictation_retention_combo.currentData(), retention)
+            with patch.object(w, "_register_hotkeys", return_value=True):
+                self.assertTrue(w._persist_form_settings(show_feedback=False))
+            self.assertEqual(w.settings_store.save.call_args.args[0].dictation_retention, retention)
+        self.service.is_recording = True
+        w._refresh_actions()
+        self.assertFalse(w.dictation_retention_combo.isEnabled())
+
+    def test_dictation_request_marks_only_push_to_transcribe_jobs(self):
+        w = self.window
+        for is_dictation in (False, True):
+            with patch.object(ui, "QThread"), patch.object(ui, "TranscriptionWorker") as worker:
+                w._start_transcription(self.root / "audio.wav", auto_copy_to_clipboard=is_dictation)
+                request = worker.call_args.args[1]
+                self.assertEqual(request.is_dictation, is_dictation)
+                self.assertEqual(request.output_directory, self.root)
+            w.transcription_thread = None
+            w.transcription_worker = None
+            w.active_transcription_job = None
+
+    def test_cleanup_runs_at_startup_and_on_timer_with_saved_setting(self):
+        w = self.window
+        self.assertTrue(w.dictation_cleanup_timer.isActive())
+        self.assertEqual(w.dictation_cleanup_timer.interval(), 3600000)
+        store = MagicMock()
+        store.load.return_value = AppSettings(output_directory=str(self.root), dictation_retention="7_days")
+        with patch.object(ui, "cleanup_dictation_history", return_value=[]) as cleanup:
+            reopened = ui.MainWindow(store)
+            try:
+                cleanup.assert_called_once_with(self.root, "7_days")
+                reopened.dictation_cleanup_timer.timeout.emit()
+                self.assertEqual(cleanup.call_count, 2)
+            finally:
+                reopened.close()
+            self.assertFalse(reopened.dictation_cleanup_timer.isActive())
+
+    def test_expiration_keeps_editor_text_and_export_protects_autosave(self):
+        w = self.window
+        path = self.root / "dictations" / f"dictation_{uuid4().hex}.txt"
+        w.current_transcript_path = path
+        w.transcript_edit.setPlainText("Keep this message")
+        with patch.object(ui, "cleanup_dictation_history", return_value=[path]):
+            w._cleanup_expired_dictations()
+        self.assertIsNone(w.current_transcript_path)
+        self.assertEqual(w.transcript_edit.toPlainText(), "Keep this message")
+        with patch.object(ui.QFileDialog, "getSaveFileName", return_value=(str(path), "Textdatei (*.txt)")), \
+             patch.object(ui, "preserve_dictation_transcript") as preserve, \
+             patch.object(Path, "write_text") as write:
+            w.export_transcript()
+        preserve.assert_called_once_with(path)
+        write.assert_called_once()
+        self.assertEqual(w.current_transcript_path, path)
+
+    def test_export_does_not_overwrite_autosave_if_preservation_fails(self):
+        w = self.window
+        w.transcript_edit.setPlainText("Keep this message")
+        path = self.root / "saved.txt"
+        with patch.object(ui.QFileDialog, "getSaveFileName", return_value=(str(path), "Textdatei (*.txt)")), \
+             patch.object(ui, "preserve_dictation_transcript", side_effect=PermissionError("locked index")), \
+             patch.object(Path, "write_text") as write, patch.object(ui.QMessageBox, "critical"):
+            w.export_transcript()
+        write.assert_not_called()
 
     def test_dictation_waits_for_modifiers_and_restores_only_unchanged_clipboard(self):
         w = self.window

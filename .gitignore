@@ -1,28 +1,36 @@
+# Local backup from repository synchronization.
+/_sync-backup/
+
+# Local tooling, build output, and Python caches.
+.agents/
+.codex/
 .venv/
+.tools/
+.gradle/
+.cxx/
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 build/
 dist/
-src/*.egg-info/
-src/**/*.egg-info/
-src/recorder_app/native/CSC*.TMP
-smoke_output/app_audio_capture_smoke.wav
-tmp/app_audio_service_smoke/
+*.egg-info/
+*.log
 
-# Local tooling, generated output, and personal recordings/transcripts.
-/.agents/
-/.codex/
+# Local recordings and transcripts.
 /output/
 /tmp/
 /smoke_output/
 /recordings/
 /transcripts/
-*.log
 
-# Local credentials and environment overrides.
+# Credentials, signing keys, and machine-specific settings.
 .env
 .env.*
 !.env.example
 !.env.sample
+*.jks
+*.keystore
+*.p12
+*.pfx
+local.properties

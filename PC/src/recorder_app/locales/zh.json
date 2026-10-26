@@ -209,5 +209,11 @@
   "Push: bitte Strg+V": "听写：请按 Ctrl+V",
   "Automatisches Einfügen nicht möglich. Der Text ist mit Strg+V verfügbar.": "无法自动插入。请按 Ctrl+V 粘贴文字。",
   "scribe läuft bereits. Bitte verwende das offene Fenster.": "scribe 已在运行。请使用已打开的窗口。",
-  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "开始：{start}。停止：{stop}。按住转写：{push}。相同的开始和停止快捷键可切换录音状态。按住快捷键，对着麦克风说话，然后松开。文字会插入原来处于焦点的输入框。如果切换了窗口或插入失败，文字会保留在剪贴板中，可按 Ctrl+V 粘贴。"
+  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "开始：{start}。停止：{stop}。按住转写：{push}。相同的开始和停止快捷键可切换录音状态。按住快捷键，对着麦克风说话，然后松开。文字会插入原来处于焦点的输入框。如果切换了窗口或插入失败，文字会保留在剪贴板中，可按 Ctrl+V 粘贴。",
+  "2 Tage": "2 天",
+  "7 Tage": "7 天",
+  "Unbegrenzt": "永久",
+  "Diktatverlauf aufbewahren": "听写历史保留时间",
+  "Automatisch gespeicherte Diktate werden beim Start und stündlich bereinigt. Normale Transkripte und exportierte Dateien bleiben erhalten.": "自动保存的听写会在启动时和每小时清理一次。普通转录和导出的文件将予以保留。",
+  "Diktat abgelaufen. Text kann weiterhin exportiert werden.": "听写已过期。仍可导出文本。"
 }

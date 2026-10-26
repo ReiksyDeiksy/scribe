@@ -209,5 +209,11 @@
   "Push: bitte Strg+V": "Push : utilisez Ctrl+V",
   "Automatisches Einfügen nicht möglich. Der Text ist mit Strg+V verfügbar.": "Insertion automatique impossible. Collez le texte avec Ctrl+V.",
   "scribe läuft bereits. Bitte verwende das offene Fenster.": "scribe est déjà ouvert. Utilisez la fenêtre existante.",
-  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "Démarrer : {start}. Arrêter : {stop}. Maintenir pour transcrire : {push}. Des raccourcis identiques alternent démarrage et arrêt. Maintenez le raccourci, parlez dans le microphone puis relâchez. Le texte est inséré dans le champ actif initial. Si la fenêtre change ou si l’insertion échoue, le texte reste dans le presse-papiers pour Ctrl+V."
+  "Start: {start}. Stopp: {stop}. Push-to-Transcribe: {push}. Gleiche Start/Stopp-Tasten schalten um. Zum Diktieren die Push-Tasten halten, ins Mikrofon sprechen und loslassen. Der Text wird im ursprünglichen aktiven Textfeld eingefügt. Bei Fensterwechsel oder Einfügefehler bleibt er für Strg+V in der Zwischenablage.": "Démarrer : {start}. Arrêter : {stop}. Maintenir pour transcrire : {push}. Des raccourcis identiques alternent démarrage et arrêt. Maintenez le raccourci, parlez dans le microphone puis relâchez. Le texte est inséré dans le champ actif initial. Si la fenêtre change ou si l’insertion échoue, le texte reste dans le presse-papiers pour Ctrl+V.",
+  "2 Tage": "2 jours",
+  "7 Tage": "7 jours",
+  "Unbegrenzt": "Sans limite",
+  "Diktatverlauf aufbewahren": "Conserver l’historique des dictées",
+  "Automatisch gespeicherte Diktate werden beim Start und stündlich bereinigt. Normale Transkripte und exportierte Dateien bleiben erhalten.": "Les dictées enregistrées automatiquement sont nettoyées au démarrage et toutes les heures. Les transcriptions ordinaires et les fichiers exportés sont conservés.",
+  "Diktat abgelaufen. Text kann weiterhin exportiert werden.": "La dictée a expiré. Le texte peut toujours être exporté."
 }
