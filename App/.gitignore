@@ -1,0 +1,11 @@
+.tools/
+.gradle/
+.cxx/
+**/build/
+local.properties
+*.jks
+*.keystore
+artifacts/
+*.log
+**/__pycache__/
+app/src/main/assets/models/*.bin
