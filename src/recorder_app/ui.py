@@ -826,7 +826,6 @@ class MainWindow(QMainWindow):
         self._apply_recording_source_to_ui()
         self._warn_if_saved_device_missing()
         self._apply_ui_language()
-        self.dictation_bar.show_near_cursor_screen()
 
     def _tr(self, source: str, **values: object) -> str:
         return translate(self.ui_language, source, **values)
@@ -2213,7 +2212,6 @@ Speicherpfad, Sprache, Modell und Hotkeys findest du oben unter "Einstellungen".
         self._set_ui_text(self.recording_value, self._format_duration(result.duration_seconds))
         self._set_ui_text(self.progress_detail, 'Aufnahme abgeschlossen ({value0}). Automatische Transkription startet ...', value0=result.capture_device)
         self._set_ui_text(self.autosave_value, str(result.file_path))
-        self._refresh_actions()
         self._start_transcription(result.file_path, cleanup_audio_path=result.file_path)
 
     def _transition_push_to_transcribe(
@@ -2837,6 +2835,13 @@ Speicherpfad, Sprache, Modell und Hotkeys findest du oben unter "Einstellungen".
         is_transcribing = self._is_transcribing()
 
         self._update_audio_status()
+        show_dictation_bar = self.push_to_transcribe_state != PushToTranscribeState.IDLE or (
+            not is_recording and not is_transcribing
+        )
+        if not show_dictation_bar:
+            self.dictation_bar.hide()
+        elif not self.dictation_bar.isVisible():
+            self.dictation_bar.show_near_cursor_screen()
         self.start_button.setVisible(not is_recording)
         self.stop_button.setVisible(is_recording)
         self.progress_panel.setVisible(is_transcribing)
