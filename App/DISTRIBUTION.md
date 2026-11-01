@@ -1,6 +1,23 @@
 # Private APK distribution
 
-## Current update: patch notes, 1 November 2026
+## Current update: personal sign-off, 1 November 2026
+
+Version `0.1.4-test`, versionCode **5**, adds the exact `Love ya, Mara <3`
+closing to every patch-note window (including history) and the Help closing
+message. The shared resource keeps it unchanged in both languages and includes
+it automatically for future notes. A new short note records this update.
+
+Prepared package:
+`artifacts/private-release/scribe-0.1.4-test-vc5-signoff-d8886551/`.
+Send `scribe-0.1.4-test-vc5.apk` as a file. Install over the existing app with
+the same signing key; do not uninstall or clear data. The installation guide,
+checksum, public signing metadata and APK audit are beside it.
+
+Future updates must retain the sign-off and add localized notes/usage steps.
+Use versionCode **6 or greater** for the next release. See `AGENTS.md` and the
+latest `VALIDATION.md` entry. All previous packages remain unchanged.
+
+## Previous update: patch notes, 1 November 2026
 
 Version `0.1.3-test`, versionCode **4**, adds Settings > Patch notes and a short
 latest-update window. Both languages/themes include a small history and steps
@@ -11,7 +28,7 @@ Every future user-visible update must add a concise English and Romanian note
 and any needed usage steps. Keep earlier notes. Update `PatchNotes.java`, both
 `patch_strings.xml` files and `app/build.gradle` together. See `AGENTS.md`.
 
-The next update must use a versionCode greater than **4**. Install over the app
+This patch-notes package uses versionCode **4**. Install over the app
 with the existing signing key; do not uninstall or clear data. See the latest
 section in `VALIDATION.md` for the package path and checks.
 
@@ -70,7 +87,7 @@ Herstelleranleitung:
 ## Nächstes Update vorbereiten
 
 1. In `app/build.gradle` den `versionCode` auf einen bisher nicht verwendeten,
-   höheren Wert setzen; nach dem aktuellen Paket mindestens `5`. Einen passenden
+   höheren Wert setzen; nach dem aktuellen Paket mindestens `6`. Einen passenden
    `versionName` vergeben. Immer kurze englische und rumänische Patch Notes samt
    nötiger Bedienhinweise ergänzen und die vorherigen Einträge behalten.
 2. `applicationId 'ro.scribe.lectures'` und den bestehenden Signaturschlüssel

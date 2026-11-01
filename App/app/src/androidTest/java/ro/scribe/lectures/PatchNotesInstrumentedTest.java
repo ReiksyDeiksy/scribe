@@ -136,12 +136,17 @@ public class PatchNotesInstrumentedTest {
       previous = release.code();
     }
     var prefs = context.getSharedPreferences("settings", 0);
-    prefs.edit().putString("ui_language", "en").putInt(PatchNotes.SEEN_VERSION, 3).commit();
+    int previousVersion = PatchNotes.HISTORY.get(1).code();
+    prefs
+        .edit()
+        .putString("ui_language", "en")
+        .putInt(PatchNotes.SEEN_VERSION, previousVersion)
+        .commit();
     // A live/paused capture has an active lecture. Do not cover its controls.
     EngineService.activeLecture = "qa-active-recording";
     launch();
     assertNull(node(activity.getString(R.string.patch_new)));
-    assertEquals(3, prefs.getInt(PatchNotes.SEEN_VERSION, 0));
+    assertEquals(previousVersion, prefs.getInt(PatchNotes.SEEN_VERSION, 0));
     close();
     EngineService.activeLecture = null;
     launch();
@@ -183,6 +188,8 @@ public class PatchNotesInstrumentedTest {
         launch();
         assertNotNull(node(activity.getString(R.string.patch_new)));
         assertNotNull(node(activity.getString(PatchNotes.latest().summary())));
+        assertNotNull(
+            node(activity.getString(PatchNotes.latest().body()) + "\n\nLove ya, Mara <3"));
         screenshot("patch-window-" + language + (dark ? "-dark" : "-light"));
         dialogButton(R.string.patch_history);
         instrumentation.runOnMainSync(
@@ -203,6 +210,7 @@ public class PatchNotesInstrumentedTest {
             });
         instrumentation.waitForIdleSync();
         assertNotNull(node(activity.getString(R.string.patch_3_summary)));
+        assertNotNull(node(activity.getString(R.string.patch_3_body) + "\n\nLove ya, Mara <3"));
         dialogButton(R.string.patch_done);
         assertEquals(PatchNotes.latest().code(), prefs.getInt(PatchNotes.SEEN_VERSION, 0));
         recreate();

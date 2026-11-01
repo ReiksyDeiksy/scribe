@@ -10,5 +10,9 @@
 - Write personal app messages and instructions in the user's voice: "send me"
   and "our chat", with equivalent Romanian wording. Do not refer to the author
   by name in the third person or append an author-name signature.
+- End every personal/update message with exactly `Love ya, Mara <3`, including
+  old patch notes and the Help closing message. Keep the sign-off in English in
+  both locales. The shared `personal_signoff` resource supplies it automatically
+  in patch-note windows; do not duplicate it in individual release bodies.
 - Build and verify the signed update APK with the existing signing key and a
   higher versionCode. Preserve previous distribution packages and app data.

@@ -1,3 +1,40 @@
+# Personal message sign-off — 1 November 2026
+
+Version `0.1.4-test`, versionCode `5`, appends exactly `Love ya, Mara <3` to
+every patch-note window (new and historical) and the Help closing message.
+One non-translatable resource supplies the same English text in both locales.
+The latest history entry records this update and keeps the reporting steps.
+Release instructions now preserve this preference for future messages.
+
+Verification:
+
+- Signed release build and lint passed (**No issues found**); **7/7 JVM tests**
+  passed. No dependency, permission, database or speech-processing changes.
+- Final signed APK: **3/3 Android UI tests** passed on the Android 15 tablet
+  emulator, 24.686 seconds. Checks cover the exact sign-off in current and older
+  notes in both languages/themes, version matching, once-per-update behavior,
+  recreation, navigation and the visible Help footer after scrolling.
+- The same three checks passed again at 1080 x 2400 / 420 dpi / 1.3 font scale:
+  **3/3**, 25.837 seconds. Tablet/phone captures were visually reviewed and the
+  emulator display/font settings restored.
+- Installed over version 4 without uninstalling or clearing data. Existing
+  database, preferences and file hashes matched immediately before/after install.
+- Existing signing certificate, APK signature, native/ZIP 16 KiB alignment,
+  pinned model checksum and payload allowlist passed. No private media or keys.
+
+Prepared update:
+`artifacts/private-release/scribe-0.1.4-test-vc5-signoff-d8886551/scribe-0.1.4-test-vc5.apk`
+(70,585,754 bytes). SHA-256:
+`d8886551cdc4f8ddc3071222c3c9d383c546712609c2d6394eb03abdcbd9592d`.
+Installation guide, checksum, public signing metadata and payload audit are beside
+the APK. Previous packages are unchanged; no sending/publishing was performed.
+Physical Samsung testing remains separate from these emulator checks.
+
+Logs: `signoff-build.log`, `signoff-tablet.log`, `signoff-phone.log`, `signoff-audit.log`,
+`signoff-signature.log`. UI and upgrade hash evidence: `artifacts/qa/signoff/`.
+
+---
+
 # Patch notes and update history — 1 November 2026
 
 Version `0.1.3-test`, versionCode `4`, adds Settings > Patch notes / Setări >

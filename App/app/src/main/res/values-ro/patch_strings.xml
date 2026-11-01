@@ -5,6 +5,8 @@
     <string name="patch_new">Ce este nou</string>
     <string name="patch_done">Am înțeles</string>
     <string name="patch_version_date">%1$s · %2$s</string>
+    <string name="patch_5_summary">Un mesaj personal la fiecare actualizare</string>
+    <string name="patch_5_body">Fiecare notă despre o actualizare se încheie acum cu un mic mesaj de la mine, inclusiv notele vechi din Setări → Noutăți. Le poți redeschide oricând acolo.\n\nCa să-mi trimiți o problemă de transcriere, deschide un curs → Raportează o problemă. Alege partea și înregistrarea sau textul pe care vrei să le incluzi, apoi Pregătește raportul → Partajează raportul → WhatsApp → conversația noastră.</string>
     <string name="patch_4_summary">O fereastră mică pentru actualizări</string>
     <string name="patch_4_body">Acum găsești note scurte despre actualizări în Setări → Noutăți. Această fereastră apare o singură dată pentru fiecare versiune nouă. Notele vechi rămân în istoric.\n\nSunt incluse și rapoartele de probleme. Deschide un curs → Raportează o problemă, alege un pasaj sau un interval de timp și bifează înregistrarea și textul pe care vrei să le incluzi. Apasă Pregătește raportul, verifică ce conține, apoi Partajează raportul → WhatsApp → conversația noastră. Nimic nu se trimite automat.</string>
     <string name="patch_3_summary">Trimite un raport de problemă</string>

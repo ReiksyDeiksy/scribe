@@ -5,6 +5,9 @@
     <string name="patch_new">What’s new</string>
     <string name="patch_done">Got it</string>
     <string name="patch_version_date">%1$s · %2$s</string>
+    <string name="personal_signoff" translatable="false">Love ya, Mara &lt;3</string>
+    <string name="patch_5_summary">A personal note with every update</string>
+    <string name="patch_5_body">Every update note now ends with a little message from me, including older notes in Settings → Patch notes. You can always open them again there.\n\nTo send me a transcription problem, open a lecture → Report a problem. Select the part and the audio or text you want to include, then Prepare report → Share report → WhatsApp → our chat.</string>
     <string name="patch_4_summary">A small window for new updates</string>
     <string name="patch_4_body">You can now find short update notes in Settings → Patch notes. This window appears once for each new version. Older notes stay in the history.\n\nAlso included: problem reports. Open a lecture → Report a problem, choose a passage or time range, and tick the audio and text you want to include. Tap Prepare report, check the contents, then Share report → WhatsApp → our chat. Nothing is sent automatically.</string>
     <string name="patch_3_summary">Send a problem report</string>

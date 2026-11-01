@@ -22,6 +22,8 @@ transcripts, settings or Python environment.
   latest note once on an idle app opening after an update (or first installation).
   It includes instructions for new features. Opening old
   notes does not reset the latest-version marker; open windows survive recreation.
+  Every note and the Help closing message ends with the shared personal sign-off
+  `Love ya, Mara <3`, unchanged in both languages.
 - Start recording immediately, with no course required. Open a lecture to assign
   an existing course or create one afterwards. Courses can be renamed.
 - Automatic localised course/date/time titles; optional custom titles.

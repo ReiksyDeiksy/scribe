@@ -1150,7 +1150,11 @@ public final class MainActivity extends Activity {
     heading.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
     heading.setAccessibilityHeading(true);
     page.addView(heading);
-    TextView body = text(release.body(), 16, inkColor);
+    TextView body =
+        text(
+            getString(release.body()) + "\n\n" + getString(R.string.personal_signoff),
+            16,
+            inkColor);
     body.setLineSpacing(dp(3), 1);
     page.addView(body);
     scroll.addView(page);
@@ -1214,7 +1218,11 @@ public final class MainActivity extends Activity {
     helpSection(page, R.string.help_trouble_title, R.string.help_trouble_body);
     helpSection(page, R.string.help_updates_title, R.string.help_updates_body);
     helpSection(page, R.string.help_report_title, R.string.help_report_body);
-    page.addView(text(R.string.help_footer, 16, inkColor));
+    page.addView(
+        text(
+            getString(R.string.help_footer) + "\n\n" + getString(R.string.personal_signoff),
+            16,
+            inkColor));
   }
 
   private void helpSection(LinearLayout page, int title, int body) {

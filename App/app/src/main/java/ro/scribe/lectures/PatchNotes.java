@@ -12,6 +12,12 @@ final class PatchNotes {
   static final List<Release> HISTORY =
       List.of(
           new Release(
+              5,
+              "0.1.4-test",
+              LocalDate.of(2026, 11, 1),
+              R.string.patch_5_summary,
+              R.string.patch_5_body),
+          new Release(
               4,
               "0.1.3-test",
               LocalDate.of(2026, 11, 1),
