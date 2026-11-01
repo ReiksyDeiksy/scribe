@@ -70,6 +70,9 @@ public class HelpInstrumentedTest {
     String oldLanguage = prefs.getString("ui_language", null);
     boolean hadTheme = prefs.contains("dark_theme");
     boolean oldTheme = prefs.getBoolean("dark_theme", false);
+    int oldSeen = prefs.getInt(PatchNotes.SEEN_VERSION, 0);
+    boolean hadSeen = prefs.contains(PatchNotes.SEEN_VERSION);
+    prefs.edit().putInt(PatchNotes.SEEN_VERSION, PatchNotes.latest().code()).commit();
     try {
       for (String language : new String[] {"en", "ro"}) {
         for (boolean dark : new boolean[] {false, true}) {
@@ -155,6 +158,8 @@ public class HelpInstrumentedTest {
       var restore = prefs.edit().putString("ui_language", oldLanguage);
       if (hadTheme) restore.putBoolean("dark_theme", oldTheme);
       else restore.remove("dark_theme");
+      if (hadSeen) restore.putInt(PatchNotes.SEEN_VERSION, oldSeen);
+      else restore.remove(PatchNotes.SEEN_VERSION);
       restore.commit();
       instrumentation.runOnMainSync(() -> ScribeApp.applyNightMode(context));
       instrumentation.waitForIdleSync();

@@ -110,6 +110,9 @@ public class ThemeInstrumentedTest {
     boolean hadTheme = prefs.contains("dark_theme");
     boolean oldTheme = prefs.getBoolean("dark_theme", false);
     String oldLanguage = prefs.getString("ui_language", null);
+    int oldSeen = prefs.getInt(PatchNotes.SEEN_VERSION, 0);
+    boolean hadSeen = prefs.contains(PatchNotes.SEEN_VERSION);
+    prefs.edit().putInt(PatchNotes.SEEN_VERSION, PatchNotes.latest().code()).commit();
     try {
       prefs.edit().remove("dark_theme").putString("ui_language", "en").commit();
       instrumentation.runOnMainSync(() -> ScribeApp.applyNightMode(context));
@@ -138,6 +141,8 @@ public class ThemeInstrumentedTest {
       var restore = prefs.edit().putString("ui_language", oldLanguage);
       if (hadTheme) restore.putBoolean("dark_theme", oldTheme);
       else restore.remove("dark_theme");
+      if (hadSeen) restore.putInt(PatchNotes.SEEN_VERSION, oldSeen);
+      else restore.remove(PatchNotes.SEEN_VERSION);
       restore.commit();
       instrumentation.runOnMainSync(() -> ScribeApp.applyNightMode(context));
       instrumentation.waitForIdleSync();

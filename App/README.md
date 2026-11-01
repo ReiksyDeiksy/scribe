@@ -17,6 +17,11 @@ transcripts, settings or Python environment.
   playback, corrections, import/export, audio deletion and APK updates in short,
   personal notes for Mara. The guide is included in both languages and themes.
   App text uses direct sentences without em dashes.
+- Settings > Patch notes / Setări > Noutăți keeps a short, versioned update
+  history in both languages and themes. A compact, scrollable window shows the
+  latest note once on an idle app opening after an update (or first installation).
+  It includes instructions for new features. Opening old
+  notes does not reset the latest-version marker; open windows survive recreation.
 - Start recording immediately, with no course required. Open a lecture to assign
   an existing course or create one afterwards. Courses can be renamed.
 - Automatic localised course/date/time titles; optional custom titles.

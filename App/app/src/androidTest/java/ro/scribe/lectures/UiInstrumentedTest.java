@@ -43,6 +43,10 @@ public class UiInstrumentedTest {
     Context context = instrumentation.getTargetContext();
     Store store = Store.get(context);
     String old = context.getSharedPreferences("settings", 0).getString("ui_language", null);
+    var prefs = context.getSharedPreferences("settings", 0);
+    int oldSeen = prefs.getInt(PatchNotes.SEEN_VERSION, 0);
+    boolean hadSeen = prefs.contains(PatchNotes.SEEN_VERSION);
+    prefs.edit().putInt(PatchNotes.SEEN_VERSION, PatchNotes.latest().code()).commit();
     store.saveCourse(0, "Anatomie QA");
     long course =
         store.courses().stream()
@@ -104,6 +108,8 @@ public class UiInstrumentedTest {
       store.deleteLecture(id);
       store.getWritableDatabase().delete("courses", "id=?", new String[] {"" + course});
       context.getSharedPreferences("settings", 0).edit().putString("ui_language", old).commit();
+      if (hadSeen) prefs.edit().putInt(PatchNotes.SEEN_VERSION, oldSeen).commit();
+      else prefs.edit().remove(PatchNotes.SEEN_VERSION).commit();
     }
   }
 

@@ -1,12 +1,32 @@
 # Private APK distribution
 
-## Current update: report sharing, 1 November 2026
+## Current update: patch notes, 1 November 2026
+
+Version `0.1.3-test`, versionCode **4**, adds Settings > Patch notes and a short
+latest-update window. Both languages/themes include a small history and steps
+for sharing problem reports. The window appears once per version, when the app
+is idle, including for installations that skipped the reporting update.
+
+Every future user-visible update must add a concise English and Romanian note
+and any needed usage steps. Keep earlier notes. Update `PatchNotes.java`, both
+`patch_strings.xml` files and `app/build.gradle` together. See `AGENTS.md`.
+
+The next update must use a versionCode greater than **4**. Install over the app
+with the existing signing key; do not uninstall or clear data. See the latest
+section in `VALIDATION.md` for the package path and checks.
+
+Prepared package:
+`artifacts/private-release/scribe-0.1.3-test-vc4-patch-notes-3c6a1c74/`.
+Send `scribe-0.1.3-test-vc4.apk` as a file; the installation guide and checksum
+are beside it. All previous packages remain unchanged.
+
+## Previous update: report sharing, 1 November 2026
 
 `artifacts/private-release/scribe-0.1.2-test-vc3-reports-dfa18077/` contains
 `scribe-0.1.2-test-vc3.apk`, its checksum, installation guide, release metadata,
 signature verification and payload audit. Install over the existing app with the
-same signing key. Do not uninstall or clear application data. The next update
-must use a versionCode greater than **3**.
+same signing key. Do not uninstall or clear application data. This reporting
+package uses versionCode **3**.
 
 The new **Report a problem** action creates a local ZIP for explicit sharing
 through WhatsApp or saving with Android's file picker. Audio/text are opt-in;
@@ -50,8 +70,9 @@ Herstelleranleitung:
 ## Nächstes Update vorbereiten
 
 1. In `app/build.gradle` den `versionCode` auf einen bisher nicht verwendeten,
-   höheren Wert setzen; nach diesem Paket mindestens `3`. Einen passenden
-   `versionName` vergeben, beispielsweise `0.1.2-test`.
+   höheren Wert setzen; nach dem aktuellen Paket mindestens `5`. Einen passenden
+   `versionName` vergeben. Immer kurze englische und rumänische Patch Notes samt
+   nötiger Bedienhinweise ergänzen und die vorherigen Einträge behalten.
 2. `applicationId 'ro.scribe.lectures'` und den bestehenden Signaturschlüssel
    beibehalten. Den privaten Ordner `.tools/signing/` samt Konfiguration
    verschlüsselt sichern. Er gehört nicht in Git oder ein Weitergabepaket.

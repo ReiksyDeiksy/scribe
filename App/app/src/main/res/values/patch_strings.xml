@@ -1,0 +1,16 @@
+<resources>
+    <string name="patch_notes">Patch notes</string>
+    <string name="patch_history">Update history</string>
+    <string name="patch_intro">Short notes on what changed and how to use it. Tap a version to read more.</string>
+    <string name="patch_new">What’s new</string>
+    <string name="patch_done">Got it</string>
+    <string name="patch_version_date">%1$s · %2$s</string>
+    <string name="patch_4_summary">A small window for new updates</string>
+    <string name="patch_4_body">You can now find short update notes in Settings → Patch notes. This window appears once for each new version. Older notes stay in the history.\n\nAlso included: problem reports. Open a lecture → Report a problem, choose a passage or time range, and tick the audio and text you want to include. Tap Prepare report, check the contents, then Share report → WhatsApp → your chat with Daniel. Nothing is sent automatically.</string>
+    <string name="patch_3_summary">Send a problem report</string>
+    <string name="patch_3_body">A lecture now has a Report a problem button. Choose the whole lecture, a passage or a time range, then add a note or the correct words if you like.\n\nFor wrong or missing words, tick Include the selected audio and Include the selected transcript. Both start off. Tap Prepare report to check what is included, then Share report → WhatsApp → your chat with Daniel. Save a copy keeps the report as a ZIP file.\n\nStop recording or pause transcription before preparing a report. Your lecture stays in scribe. Deleted audio cannot be attached.</string>
+    <string name="patch_2_summary">A new look, dark theme and help</string>
+    <string name="patch_2_body">scribe has a puffin icon and new colours. Settings → Dark theme switches to darker colours.\n\nSettings → Help explains recording, listening, correcting text and keeping your audio. Menus and help are available in English and Romanian.</string>
+    <string name="patch_1_summary">The first lecture recorder</string>
+    <string name="patch_1_body">Record or import a lecture and get a transcript on your tablet after recording stops. Organise lectures by course, mark important moments and export the text.\n\nTap a text passage to listen to its recording. Hold the passage to correct the words. Check the text before relying on it, especially names and specialist terms.</string>
+</resources>

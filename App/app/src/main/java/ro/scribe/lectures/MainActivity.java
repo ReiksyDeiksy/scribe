@@ -43,6 +43,8 @@ import java.io.File;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -84,6 +86,8 @@ public final class MainActivity extends Activity {
   private MediaPlayer player;
   private String playingPath;
   private long highlightId;
+  private AlertDialog patchDialog;
+  private int patchVersion;
   private final Runnable tick =
       new Runnable() {
         @Override
@@ -117,6 +121,7 @@ public final class MainActivity extends Activity {
       lectureId = saved.getString("lecture");
       screen = saved.getString("screen", "library");
       courseFilter = saved.getLong("course");
+      patchVersion = saved.getInt("patch_version");
     } else if (EngineService.activeLecture != null) {
       lectureId = EngineService.activeLecture;
       screen = "detail";
@@ -128,6 +133,12 @@ public final class MainActivity extends Activity {
   protected void onResume() {
     super.onResume();
     handler.post(tick);
+    PatchNotes.Release restored = PatchNotes.find(patchVersion);
+    if (restored != null) showPatchNote(restored);
+    else if (prefs.getInt(PatchNotes.SEEN_VERSION, 0) < PatchNotes.latest().code()
+        && EngineService.activeLecture == null
+        && EngineService.capture == null
+        && !EngineService.processing) showPatchNote(PatchNotes.latest());
   }
 
   @Override
@@ -141,11 +152,13 @@ public final class MainActivity extends Activity {
     state.putString("lecture", lectureId);
     state.putString("screen", screen);
     state.putLong("course", courseFilter);
+    if (patchDialog != null && patchDialog.isShowing()) state.putInt("patch_version", patchVersion);
     super.onSaveInstanceState(state);
   }
 
   @Override
   protected void onDestroy() {
+    if (patchDialog != null) patchDialog.dismiss();
     stopPlayback();
     files.shutdown();
     super.onDestroy();
@@ -153,7 +166,7 @@ public final class MainActivity extends Activity {
 
   @Override
   public void onBackPressed() {
-    if (screen.equals("help")) {
+    if (screen.equals("help") || screen.equals("patch_notes")) {
       screen = "settings";
       render();
     } else if (!screen.equals("library")) {
@@ -292,6 +305,7 @@ public final class MainActivity extends Activity {
     else if (screen.equals("courses")) courses();
     else if (screen.equals("settings")) settings();
     else if (screen.equals("help")) help();
+    else if (screen.equals("patch_notes")) patchNotes();
     else {
       screen = "library";
       library();
@@ -299,7 +313,10 @@ public final class MainActivity extends Activity {
     LinearLayout nav = row();
     nav.setPadding(0, dp(8), 0, 0);
     for (String tab : new String[] {"library", "courses", "settings"}) {
-      boolean selected = screen.equals(tab) || (screen.equals("help") && tab.equals("settings"));
+      boolean selected =
+          screen.equals(tab)
+              || ((screen.equals("help") || screen.equals("patch_notes"))
+                  && tab.equals("settings"));
       int label =
           tab.equals("library")
               ? R.string.library
@@ -985,6 +1002,14 @@ public final class MainActivity extends Activity {
               screen = "help";
               render();
             }));
+    page.addView(
+        button(
+            R.string.patch_notes,
+            false,
+            () -> {
+              screen = "patch_notes";
+              render();
+            }));
     Switch darkTheme = new Switch(this);
     darkTheme.setText(R.string.dark_theme);
     darkTheme.setTextColor(inkColor);
@@ -1065,6 +1090,99 @@ public final class MainActivity extends Activity {
             14,
             mutedColor));
     note(page, R.string.privacy);
+  }
+
+  private String patchLabel(PatchNotes.Release release) {
+    Locale locale = getResources().getConfiguration().getLocales().get(0);
+    return getString(
+        R.string.patch_version_date,
+        release.version(),
+        release
+            .date()
+            .format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale)));
+  }
+
+  private void patchNotes() {
+    content.addView(
+        button(
+            R.string.help_back,
+            false,
+            () -> {
+              screen = "settings";
+              render();
+            }));
+    ScrollView scroll = new ScrollView(this);
+    LinearLayout page = column();
+    scroll.addView(page);
+    content.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
+    TextView title = text(R.string.patch_notes, 26, inkColor);
+    title.setAccessibilityHeading(true);
+    page.addView(title);
+    note(page, R.string.patch_intro);
+    for (PatchNotes.Release release : PatchNotes.HISTORY) {
+      page.addView(
+          button(
+              patchLabel(release) + "\n" + getString(release.summary()),
+              false,
+              () -> showPatchNote(release)));
+    }
+  }
+
+  private void showPatchNote(PatchNotes.Release release) {
+    if (patchDialog != null && patchDialog.isShowing()) return;
+    patchVersion = release.code();
+    ScrollView scroll =
+        new ScrollView(this) {
+          @Override
+          protected void onMeasure(int width, int height) {
+            // Keep tablet dialogs compact; allow the content to scroll with larger fonts.
+            int maximum = Math.round(getResources().getDisplayMetrics().heightPixels * 0.55f);
+            if (MeasureSpec.getMode(height) != MeasureSpec.UNSPECIFIED)
+              maximum = Math.min(maximum, MeasureSpec.getSize(height));
+            super.onMeasure(width, MeasureSpec.makeMeasureSpec(maximum, MeasureSpec.AT_MOST));
+          }
+        };
+    LinearLayout page = column();
+    page.setPadding(dp(24), dp(8), dp(24), dp(8));
+    TextView version = text(patchLabel(release), 14, mutedColor);
+    page.addView(version);
+    TextView heading = text(release.summary(), 18, inkColor);
+    heading.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+    heading.setAccessibilityHeading(true);
+    page.addView(heading);
+    TextView body = text(release.body(), 16, inkColor);
+    body.setLineSpacing(dp(3), 1);
+    page.addView(body);
+    scroll.addView(page);
+    scroll.setFillViewport(false);
+    patchDialog =
+        new AlertDialog.Builder(this)
+            .setTitle(
+                release.code() == PatchNotes.latest().code()
+                    ? R.string.patch_new
+                    : R.string.patch_notes)
+            .setView(scroll)
+            .setPositiveButton(R.string.patch_done, (dialog, which) -> {})
+            .setNeutralButton(
+                R.string.patch_history,
+                (dialog, which) -> {
+                  screen = "patch_notes";
+                  render();
+                })
+            .create();
+    patchDialog.setOnDismissListener(
+        dialog -> {
+          patchDialog = null;
+          patchVersion = 0;
+        });
+    patchDialog.show();
+    patchDialog.getWindow().setBackgroundDrawable(shape(surfaceColor, 20));
+    patchDialog.getButton(AlertDialog.BUTTON_POSITIVE).setAllCaps(false);
+    patchDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setAllCaps(false);
+    patchDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(actionColor);
+    patchDialog.getButton(AlertDialog.BUTTON_NEUTRAL).setTextColor(actionColor);
+    if (release.code() == PatchNotes.latest().code())
+      prefs.edit().putInt(PatchNotes.SEEN_VERSION, release.code()).apply();
   }
 
   private void help() {

@@ -1,3 +1,55 @@
+# Patch notes and update history — 1 November 2026
+
+Version `0.1.3-test`, versionCode `4`, adds Settings > Patch notes / Setări >
+Noutăți, with four versioned notes. Selecting a version opens a compact,
+scrollable dialog. The latest note appears once on an idle app opening after
+an update or first installation. It includes steps for problem-report sharing,
+including for users who skipped version 3. The preference and any open dialog
+survive activity recreation. Recording, transcription, database schema and report
+sharing are unchanged.
+
+`AGENTS.md` and the distribution checklist now require short localized notes
+and usage instructions for every future user-visible update. A release check
+asserts that the newest note matches the installed app version.
+
+Verification:
+
+- Debug/release builds and lint passed. Both lint reports: **No issues found**.
+- JVM tests: **7/7 passed**.
+- Full signed-release Android regression: **19/19 passed**, 129.138 seconds,
+  on the Android 15 tablet emulator. This includes the previous capture,
+  streaming decode, actual English recognition, queue/retention, database,
+  report-sharing, help/theme and transcript checks.
+- Patch-note instrumentation: **2/2 passed** on the signed release APK on the
+  Android 15 tablet emulator. Covers existing/missing seen-version preferences,
+  once-per-version behavior, active-lecture deferral, window recreation, history,
+  Settings/back navigation, English/Romanian and both themes.
+- The same two patch-note tests passed again on the final APK at 1080 x 2400,
+  420 dpi and 1.3 font scale: **2/2**, 15.513 seconds. Tablet and phone captures
+  were visually reviewed; long notes scroll and the dialog actions stay visible.
+  The emulator display/font settings were restored afterwards.
+- The emulator's existing signed version 3 installation was upgraded in place to
+  version 4. All saved database, preferences and file hashes matched immediately
+  before/after installation; no uninstall or data clearing was used.
+- APK signature, existing signing certificate, native/ZIP 16 KiB alignment,
+  pinned speech-model checksum and asset/media/key allowlist passed. No new
+  dependencies, permissions, network connections or automatic sharing.
+
+Prepared update:
+`artifacts/private-release/scribe-0.1.3-test-vc4-patch-notes-3c6a1c74/scribe-0.1.3-test-vc4.apk`
+(70,583,770 bytes). SHA-256:
+`3c6a1c7425c5aed6295e928f76aab800447fe788fe099ffbbc89991cdb24247b`.
+Installation guide, checksum, public signing metadata and APK audit are beside it.
+No sending or publishing was performed. Physical Samsung testing is still needed;
+this update does not establish Romanian accuracy or three-hour performance.
+
+Logs: `patch-build.log`, `patch-build-final.log`, `patch-window-tablet.log`,
+`patch-regression.log`, `patch-window-phone.log`,
+`patch-signature.log`, `patch-apk-audit.log`. Screenshots and upgrade hash evidence
+are in `artifacts/qa/patch-notes/`.
+
+---
+
 # Problem reports and file sharing — 1 November 2026
 
 Version `0.1.2-test`, versionCode `3`, adds a lecture-level report screen with
