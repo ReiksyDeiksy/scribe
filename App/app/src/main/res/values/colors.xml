@@ -1,0 +1,18 @@
+<resources>
+    <color name="scribe_primary">#00CED1</color>
+    <color name="scribe_sea_green">#20B2AA</color>
+    <color name="scribe_aquamarine">#7FFFD4</color>
+    <color name="scribe_steel_blue">#4682B4</color>
+    <color name="scribe_cadet_blue">#5F9EA0</color>
+    <color name="scribe_background">#F2FBFA</color>
+    <color name="scribe_surface">#FFFFFF</color>
+    <color name="scribe_surface_tint">#E1F6F3</color>
+    <color name="scribe_outline">#C8E2E0</color>
+    <color name="scribe_ink">#152D3D</color>
+    <color name="scribe_on_primary">#152D3D</color>
+    <color name="scribe_highlight">@color/scribe_aquamarine</color>
+    <color name="scribe_muted">#48636F</color>
+    <!-- A darker turquoise keeps small text and native controls legible on light surfaces. -->
+    <color name="scribe_action">#006D70</color>
+    <color name="scribe_ripple">#29358288</color>
+</resources>

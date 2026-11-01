@@ -13,6 +13,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.PowerManager;
+import android.os.SystemClock;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -83,12 +84,39 @@ public final class EngineService extends Service {
       worker.execute(
           () -> {
             String error = "";
+            long started = SystemClock.elapsedRealtime();
+            Diagnostics.record(
+                this,
+                id,
+                "recording_started",
+                -1,
+                -1,
+                "build",
+                Diagnostics.build(this),
+                "recognition",
+                Diagnostics.recognition(),
+                "sample_rate_hz",
+                Core.SAMPLE_RATE,
+                "audio_bitrate",
+                64000);
             try {
               recording.run();
               error = recording.interruption;
             } catch (Exception e) {
               error = code(e);
             } finally {
+              Diagnostics.record(
+                  this,
+                  id,
+                  "recording_finished",
+                  -1,
+                  -1,
+                  "wall_elapsed_ms",
+                  SystemClock.elapsedRealtime() - started,
+                  "audio_duration_ms",
+                  recording.position,
+                  "error",
+                  error);
               store.status(id, error.isEmpty() ? "queued" : "interrupted", error);
               capture = null;
               activeLecture = null;
@@ -142,7 +170,7 @@ public final class EngineService extends Service {
   private void foreground(boolean recording) {
     Notification.Builder n =
         new Notification.Builder(this, "lecture")
-            .setSmallIcon(R.drawable.ic_scribe)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("scribe")
             .setContentText(
                 localized.getString(
@@ -206,16 +234,46 @@ public final class EngineService extends Service {
         store.status(chunk.lecture(), "processing", "");
         final Store.Chunk current = chunk;
         try {
+          Diagnostics.record(
+              this,
+              chunk.lecture(),
+              "chunk_started",
+              -1,
+              -1,
+              "chunk_number",
+              chunk.number(),
+              "resume_from_ms",
+              chunk.processed(),
+              "build",
+              Diagnostics.build(this),
+              "recognition",
+              Diagnostics.recognition());
           if (chunk.imported() && chunk.duration() == 0) {
             store.ready(chunk.id(), AudioDecoder.duration(this, chunk.path()));
             store.chunkState(chunk.id(), "processing");
           }
-          if (model == null) model = new Whisper(this);
+          if (model == null) {
+            long loadStarted = SystemClock.elapsedRealtime();
+            model = new Whisper(this);
+            Diagnostics.record(
+                this,
+                chunk.lecture(),
+                "model_loaded",
+                -1,
+                -1,
+                "elapsed_ms",
+                SystemClock.elapsedRealtime() - loadStarted,
+                "build",
+                Diagnostics.build(this),
+                "recognition",
+                Diagnostics.recognition());
+          }
           final Whisper loaded = model;
           Store.Lecture lecture = store.lecture(chunk.lecture());
           final long[] checkpoint = {chunk.processed()};
           List<Store.Segment> prior = store.segments(chunk.lecture());
           final String[] previous = {prior.isEmpty() ? "" : prior.get(prior.size() - 1).text()};
+          final long[] decodeStarted = {SystemClock.elapsedRealtime()};
           long end =
               AudioDecoder.decode(
                   this,
@@ -223,6 +281,8 @@ public final class EngineService extends Service {
                   chunk.processed(),
                   () -> cancelled,
                   (start, samples) -> {
+                    long windowStarted = SystemClock.elapsedRealtime();
+                    long decodeMs = windowStarted - decodeStarted[0];
                     long endMs = start + samples.length * 1000L / Core.SAMPLE_RATE;
                     if (endMs <= checkpoint[0]) return;
                     if (StorageGuard.available(this) < Core.RESERVE_BYTES / 2)
@@ -232,10 +292,15 @@ public final class EngineService extends Service {
                     List<Store.Piece> pieces = new ArrayList<>();
                     double energy = 0;
                     for (float s : samples) energy += s * s;
+                    int returnedSegments = 0;
+                    long recognitionMs = 0;
                     if (Math.sqrt(energy / samples.length) >= 0.0015) {
                       String prompt = previous[0];
                       if (prompt.length() > 500) prompt = prompt.substring(prompt.length() - 500);
+                      long recognitionStarted = SystemClock.elapsedRealtime();
                       JSONArray result = loaded.transcribe(samples, lecture.language(), prompt);
+                      recognitionMs = SystemClock.elapsedRealtime() - recognitionStarted;
+                      returnedSegments = result.length();
                       for (int i = 0; i < result.length(); i++) {
                         JSONObject s = result.getJSONObject(i);
                         long a = start + s.getLong("start"),
@@ -253,6 +318,29 @@ public final class EngineService extends Service {
                     if (cancelled) throw new IOException("cancelled");
                     store.saveWindow(current, endMs, pieces);
                     checkpoint[0] = endMs;
+                    Diagnostics.record(
+                        this,
+                        current.lecture(),
+                        "window_processed",
+                        current.start() + start,
+                        current.start() + endMs,
+                        "audio_ms",
+                        samples.length * 1000L / Core.SAMPLE_RATE,
+                        "decode_elapsed_ms",
+                        decodeMs,
+                        "recognition_elapsed_ms",
+                        recognitionMs,
+                        "recognition_and_commit_elapsed_ms",
+                        SystemClock.elapsedRealtime() - windowStarted,
+                        "rms",
+                        Math.sqrt(energy / samples.length),
+                        "returned_segments",
+                        returnedSegments,
+                        "accepted_segments",
+                        pieces.size(),
+                        "language",
+                        lecture.language());
+                    decodeStarted[0] = SystemClock.elapsedRealtime();
                   });
           if (cancelled) throw new IOException("cancelled");
           if (chunk.imported()) store.ready(chunk.id(), end);
@@ -268,6 +356,18 @@ public final class EngineService extends Service {
           }
           store.settle(chunk.lecture());
         } catch (Exception e) {
+          Diagnostics.record(
+              this,
+              chunk.lecture(),
+              "processing_failed",
+              -1,
+              -1,
+              "error",
+              cancelled ? "cancelled" : code(e),
+              "exception_type",
+              e.getClass().getSimpleName(),
+              "exception",
+              Diagnostics.failure(e));
           store.chunkState(chunk.id(), cancelled ? "ready" : "error");
           store.status(
               chunk.lecture(), cancelled ? "cancelled" : "error", cancelled ? "" : code(e));

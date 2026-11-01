@@ -15,8 +15,17 @@ def main():
     with zipfile.ZipFile(apk) as zipped:
         names = zipped.namelist()
         assert not any(n.lower().endswith(('.wav','.mp3','.m4a','.flac','.ogg','.p12','.jks','.keystore')) for n in names), 'Unexpected private/media/key payload'
-        assert set(n for n in names if n.startswith('assets/')) == {
-            MODEL,'assets/legal/whisper-MIT.txt','assets/legal/whisper-model-MIT.txt','assets/legal/scribe-MIT.txt'}, 'Unexpected assets'
+        assets = set(n for n in names if n.startswith('assets/'))
+        expected_assets = {MODEL,'assets/legal/whisper-MIT.txt','assets/legal/whisper-model-MIT.txt','assets/legal/scribe-MIT.txt'}
+        if 'META-INF/androidx.core_core.version' in names:
+            expected_assets.add('assets/legal/AndroidX-Apache-2.0.txt')
+        profiles = {'assets/dexopt/baseline.prof', 'assets/dexopt/baseline.profm'}
+        assert assets in (expected_assets, expected_assets | profiles), 'Unexpected assets'
+        # AndroidX supplies a compiled baseline profile, not application/user data.
+        if profiles <= assets:
+            for profile, magic in (('assets/dexopt/baseline.prof', b'pro\0'), ('assets/dexopt/baseline.profm', b'prm\0')):
+                assert zipped.getinfo(profile).file_size < 1024 * 1024, 'Unexpected profile size'
+                assert zipped.read(profile).startswith(magic), 'Invalid baseline profile'
         with zipped.open(MODEL) as stream:
             model_hash = hashlib.file_digest(stream,'sha256').hexdigest()
         assert model_hash == EXPECTED, 'Model digest mismatch'

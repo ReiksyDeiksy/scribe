@@ -1,0 +1,48 @@
+<resources>
+    <string name="report_problem">Report a problem</string>
+    <string name="report_back">‹ Back to lecture</string>
+    <string name="report_intro">Something went wrong? Choose what to include and tell Daniel what happened. You can review everything before sharing.</string>
+    <string name="report_kind">What went wrong?</string>
+    <string-array name="report_problems">
+        <item>Wrong transcription</item><item>Missing speech</item><item>Too slow</item>
+        <item>Playback problem</item><item>Crash or interruption</item><item>Something else</item>
+    </string-array>
+    <string name="report_scope">Which part?</string>
+    <string-array name="report_scopes">
+        <item>Whole lecture</item><item>A text passage</item><item>A time range</item>
+    </string-array>
+    <string name="report_whole">Whole lecture</string>
+    <string name="report_no_passages">There are no text passages yet. Choose the whole lecture or a time range.</string>
+    <string name="report_range_hint">Enter the start and end as minutes:seconds or hours:minutes:seconds.</string>
+    <string name="report_from">Start, for example 02:15</string>
+    <string name="report_until">End, for example 02:45</string>
+    <string name="report_range_invalid">Enter a valid start and a later end, up to 24 hours.</string>
+    <string name="report_include_audio">Include the selected audio</string>
+    <string name="report_include_text">Include the selected transcript</string>
+    <string name="report_attachments_hint">For wrong or missing words, include audio and text so Daniel can compare them. A time range shares only that audio; a whole lecture may create a large file.</string>
+    <string name="report_notes">What happened? (optional)</string>
+    <string name="report_note_hint">For example: it repeated the first words and missed the next sentence.</string>
+    <string name="report_expected">What should it say? (optional)</string>
+    <string name="report_expected_hint">Write the words you actually said, if you know them.</string>
+    <string name="report_privacy">The report includes this lecture’s status, your notes, app/device details, settings, and available timing/error records. Audio and transcript text are included only if selected. It stays on your tablet until you choose to share or save it.</string>
+    <string name="report_prepare">Prepare report</string>
+    <string name="report_preparing">Preparing report…</string>
+    <string name="report_busy">Stop recording or pause this lecture’s transcription first, then try again.</string>
+    <string name="report_too_large">The report exceeds 256 MB. Choose a shorter time range or leave out the audio.</string>
+    <string name="report_failed">The report could not be prepared. Check available storage and audio access. For an unreadable excerpt, try the whole lecture or leave out audio.</string>
+    <string name="report_ready">Review your report</string>
+    <string name="report_preview">Selected: %1$s\nFile size: %2$s\nAudio files: %3$d\nTranscript: %4$s\nDiagnostic records: %5$d</string>
+    <string name="report_yes">Included</string><string name="report_no">Not included</string>
+    <string name="report_preview_details">Also included: this lecture’s status, app version, model/language settings, device model, Android version, and available timing/error records. Older lectures may have no measurements. The report contains no other lectures or device-wide logs.</string>
+    <string name="report_text_scope">Text passages overlapping your selection are included in full, with original recognition text where available and any saved corrections.</string>
+    <string name="report_missing_audio">Some or all selected audio is unavailable and could not be attached. The report lists the missing sections. Deleted recordings cannot be recovered.</string>
+    <string name="report_share_hint">Tap Share report, choose WhatsApp, and choose your chat with Daniel. Nothing is sent automatically. The prepared copy is temporary; save a copy if you want to keep it.</string>
+    <string name="report_share">Share report</string>
+    <string name="report_save">Save a copy</string>
+    <string name="report_saved">Report saved</string>
+    <string name="report_save_failed">The copy could not be saved. The prepared report is still available for sharing.</string>
+    <string name="report_share_failed">Sharing could not be opened. Try Save a copy instead.</string>
+    <string name="report_edit">Change report</string>
+    <string name="help_report_title">11. Reporting a problem</string>
+    <string name="help_report_body">Open a lecture and tap Report a problem. Choose what went wrong and the whole lecture, a passage, or a time range. Audio and text are optional: select them for transcription problems. Add a note or the correct words if you like. Prepare report shows what is included and its size. Tap Share report, choose WhatsApp, then your chat with Daniel. Nothing is sent automatically. Save a copy keeps a ZIP file where you choose. Stop recording or pause transcription before preparing a report. Deleted audio cannot be attached; older lectures may have no timing records.</string>
+</resources>

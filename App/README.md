@@ -7,9 +7,16 @@ transcripts, settings or Python environment.
 
 ## Included
 
+- Puffin-and-quill launcher/splash identity and turquoise (#00CED1), mint and
+  blue colours. Settings offers a saved Dark theme switch; light remains the
+  default. Source artwork and palette notes are in `design/`.
 - English and Romanian UI, selectable in Settings. Other device languages fall
   back to English. Lecture language is a separate setting; automatic detection
   is the default.
+- Settings > Help / Setări > Ajutor explains recording, transcription, organising,
+  playback, corrections, import/export, audio deletion and APK updates in short,
+  personal notes for Mara. The guide is included in both languages and themes.
+  App text uses direct sentences without em dashes.
 - Start recording immediately, with no course required. Open a lecture to assign
   an existing course or create one afterwards. Courses can be renamed.
 - Automatic localised course/date/time titles; optional custom titles.
@@ -33,6 +40,16 @@ transcripts, settings or Python environment.
 - Segment timestamps, text corrections, copy/share and UTF-8 TXT export through
   Android's file picker. Tap a passage to listen; hold it to edit. Playback
   continues to the next retained recording chunk.
+- **Report a problem** on a lecture prepares a local ZIP, with a review screen
+  before Android sharing (choose WhatsApp and the recipient) or Save a copy.
+  Choose the whole lecture, a passage or a time range, an issue category, notes
+  and expected words. Audio and transcript attachments are opt-in. Failed and
+  empty transcripts can also be reported. Time-range audio is actually cropped;
+  full-lecture audio retains its original encoding. Reports are capped at 256 MiB.
+- New recordings/processing collect bounded, content-free timing/error records
+  and sampled device conditions. Original recognised passage text is preserved
+  separately from corrections. The schema-v2 migration retains existing data;
+  legacy originals and historical timings are explicitly unavailable.
 - SQLite WAL with FULL synchronous writes. Window text and its checkpoint are
   committed together. Retrying an already committed window preserves edits.
 - Crash recovery resets incomplete processing to ready; interrupted captures
@@ -61,7 +78,7 @@ grant may prevent later processing/playback; existing transcript text remains.
 ## Deferred as requested
 
 No Google Play/Firebase distribution integration, in-app update mechanism,
-test-report export or telemetry. No live transcript mode, LLM summary, system/app
+automatic report uploads or telemetry. No live transcript mode, LLM summary, system/app
 audio capture, desktop shortcuts, third-party text insertion, subtitle export,
 speaker identification, user accounts or cloud sync. Automated developer tests
 are separate from these deferred product features.
@@ -123,3 +140,13 @@ still need to be confirmed. No performance result is inferred from the PC CPU.
 
 The existing Git repository remains at `D:\Dev\Recorder\.git` and can track
 both `PC` and `App`. No nested Git repository or Git-directory move is required.
+
+## Problem reports
+
+See `REPORTS.md` for the tester workflow, archive contents and privacy limits.
+Inspect a received ZIP on Windows without extracting it:
+
+```powershell
+python tools\inspect_report.py 'path\to\scribe-report-....zip'
+python -m unittest discover -s tools -p test_inspect_report.py -v
+```

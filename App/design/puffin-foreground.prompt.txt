@@ -1,0 +1,7 @@
+Use case: background-extraction.
+Asset type: production Android adaptive launcher icon foreground, one square transparent PNG.
+Edit target: the supplied selected Scribe icon 09.
+Precisely extract and reproduce ONLY its elegant puffin-and-quill bird on a genuinely transparent background. Preserve its exact identity: side-facing puffin head turned to the right, orange triangular beak, small expressive dark eye, ivory face, dark ink-navy cap, sweeping S-shaped ivory neck/body, dark curled tail below left, long ivory feather/quill and fine dark shaft down the right. Keep the same illustration style, curves, pose, proportions, and sharp polished edges. No purple cast in the bird. No glow or shadow outside the bird. Preserve the dark navy and warm ivory interior shading.
+Remove the purple square background completely; do not add any square, circle, border, text, numbers, phone mockup, or new backdrop.
+Composition: square canvas with the COMPLETE bird centered, scaled to occupy the central 60 percent of BOTH canvas width and canvas height, leaving approximately 20 percent completely transparent padding on all four sides. All of the beak, tail and quill tip must remain fully inside that central area. The transparent padding is essential for Android adaptive-icon masks; do not crop the bird or fill the canvas.
+Output one finished foreground asset only, transparent background.

@@ -1,0 +1,11 @@
+<resources>
+    <color name="scribe_background">#0E1E24</color>
+    <color name="scribe_surface">#172D34</color>
+    <color name="scribe_surface_tint">#1C3F43</color>
+    <color name="scribe_outline">#36545A</color>
+    <color name="scribe_ink">#EAF7F5</color>
+    <color name="scribe_muted">#AAC4C8</color>
+    <color name="scribe_action">@color/scribe_primary</color>
+    <color name="scribe_highlight">#24585A</color>
+    <color name="scribe_ripple">#337FFFD4</color>
+</resources>

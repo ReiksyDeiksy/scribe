@@ -10,8 +10,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.RippleDrawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
@@ -28,6 +30,7 @@ import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -51,11 +54,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class MainActivity extends Activity {
-  private static final int BG = 0xff101716,
-      CARD = 0xff1c2724,
-      ACCENT = 0xff8ce8c1,
-      INK = 0xfff0f4eb,
-      MUTED = 0xffa7b8af;
+  private int backgroundColor,
+      surfaceColor,
+      primaryColor,
+      inkColor,
+      mutedColor,
+      actionColor,
+      outlineColor,
+      surfaceTintColor,
+      highlightColor,
+      primaryInkColor;
   private final Handler handler = new Handler(Looper.getMainLooper());
   private final ExecutorService files = Executors.newSingleThreadExecutor();
   private Store store;
@@ -93,6 +101,16 @@ public final class MainActivity extends Activity {
   @Override
   public void onCreate(Bundle saved) {
     super.onCreate(saved);
+    backgroundColor = getColor(R.color.scribe_background);
+    surfaceColor = getColor(R.color.scribe_surface);
+    primaryColor = getColor(R.color.scribe_primary);
+    inkColor = getColor(R.color.scribe_ink);
+    mutedColor = getColor(R.color.scribe_muted);
+    actionColor = getColor(R.color.scribe_action);
+    outlineColor = getColor(R.color.scribe_outline);
+    surfaceTintColor = getColor(R.color.scribe_surface_tint);
+    highlightColor = getColor(R.color.scribe_highlight);
+    primaryInkColor = getColor(R.color.scribe_on_primary);
     store = Store.get(this);
     prefs = getSharedPreferences("settings", 0);
     if (saved != null) {
@@ -135,7 +153,10 @@ public final class MainActivity extends Activity {
 
   @Override
   public void onBackPressed() {
-    if (!screen.equals("library")) {
+    if (screen.equals("help")) {
+      screen = "settings";
+      render();
+    } else if (!screen.equals("library")) {
       screen = "library";
       render();
     } else super.onBackPressed();
@@ -187,8 +208,14 @@ public final class MainActivity extends Activity {
     b.setText(label);
     b.setAllCaps(false);
     b.setTextSize(15);
-    b.setTextColor(primary ? BG : INK);
-    b.setBackground(shape(primary ? ACCENT : CARD, 14));
+    b.setTextColor(primary ? primaryInkColor : actionColor);
+    b.setTypeface(Typeface.DEFAULT, primary ? Typeface.BOLD : Typeface.NORMAL);
+    GradientDrawable background = shape(primary ? primaryColor : surfaceColor, 16);
+    if (!primary) background.setStroke(dp(1), outlineColor);
+    b.setBackgroundTintList(null);
+    b.setBackground(
+        new RippleDrawable(
+            ColorStateList.valueOf(getColor(R.color.scribe_ripple)), background, null));
     b.setPadding(dp(16), dp(8), dp(16), dp(8));
     b.setMinHeight(dp(48));
     LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(-1, -2);
@@ -210,12 +237,14 @@ public final class MainActivity extends Activity {
   private LinearLayout card() {
     LinearLayout v = column();
     v.setPadding(dp(18), dp(12), dp(18), dp(12));
-    v.setBackground(shape(CARD, 18));
+    GradientDrawable background = shape(surfaceColor, 20);
+    background.setStroke(dp(1), outlineColor);
+    v.setBackground(background);
     return v;
   }
 
   private void note(LinearLayout parent, int id) {
-    parent.addView(text(id, 14, MUTED));
+    parent.addView(text(id, 14, mutedColor));
   }
 
   private void render() {
@@ -227,7 +256,7 @@ public final class MainActivity extends Activity {
     meter = null;
     pause = null;
     root = column();
-    root.setBackgroundColor(BG);
+    root.setBackgroundColor(backgroundColor);
     root.setPadding(dp(20), dp(14), dp(20), dp(12));
     setContentView(root);
     if (Build.VERSION.SDK_INT >= 35)
@@ -240,22 +269,37 @@ public final class MainActivity extends Activity {
             return insets;
           });
     LinearLayout heading = row();
-    TextView wordmark = text("scribe", 32, ACCENT);
+    heading.setPadding(0, 0, 0, dp(10));
+    ImageView brand = new ImageView(this);
+    brand.setImageResource(R.drawable.ic_scribe);
+    brand.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+    LinearLayout.LayoutParams brandSize = new LinearLayout.LayoutParams(dp(48), dp(48));
+    brandSize.setMarginEnd(dp(12));
+    heading.addView(brand, brandSize);
+    TextView wordmark = text("scribe", 30, inkColor);
     wordmark.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
     heading.addView(wordmark, new LinearLayout.LayoutParams(0, -2, 1));
-    heading.addView(text(R.string.brand_caption, 12, MUTED));
+    TextView caption = text(R.string.brand_caption, 11, actionColor);
+    caption.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+    caption.setLetterSpacing(0.08f);
+    caption.setPadding(dp(10), dp(7), dp(10), dp(7));
+    caption.setBackground(shape(surfaceTintColor, 10));
+    heading.addView(caption);
     root.addView(heading);
     content = column();
     root.addView(content, new LinearLayout.LayoutParams(-1, 0, 1));
     if (screen.equals("detail") && store.lecture(lectureId) != null) detail();
     else if (screen.equals("courses")) courses();
     else if (screen.equals("settings")) settings();
+    else if (screen.equals("help")) help();
     else {
       screen = "library";
       library();
     }
     LinearLayout nav = row();
+    nav.setPadding(0, dp(8), 0, 0);
     for (String tab : new String[] {"library", "courses", "settings"}) {
+      boolean selected = screen.equals(tab) || (screen.equals("help") && tab.equals("settings"));
       int label =
           tab.equals("library")
               ? R.string.library
@@ -263,12 +307,24 @@ public final class MainActivity extends Activity {
       Button b =
           button(
               label,
-              screen.equals(tab),
+              selected,
               () -> {
                 screen = tab;
                 render();
               });
-      nav.addView(b, new LinearLayout.LayoutParams(0, dp(48), 1));
+      b.setTextSize(12);
+      b.setPadding(dp(6), dp(8), dp(6), dp(8));
+      int icon =
+          tab.equals("library")
+              ? R.drawable.ic_library
+              : tab.equals("courses") ? R.drawable.ic_courses : R.drawable.ic_settings;
+      b.setCompoundDrawablesWithIntrinsicBounds(0, icon, 0, 0);
+      b.setCompoundDrawableTintList(
+          ColorStateList.valueOf(selected ? primaryInkColor : getColor(R.color.scribe_steel_blue)));
+      b.setCompoundDrawablePadding(dp(3));
+      LinearLayout.LayoutParams tabSize = new LinearLayout.LayoutParams(0, dp(64), 1);
+      tabSize.setMargins(dp(3), 0, dp(3), 0);
+      nav.addView(b, tabSize);
     }
     root.addView(nav);
     refresh();
@@ -278,11 +334,19 @@ public final class MainActivity extends Activity {
     note(content, R.string.tagline);
     EditText search = new EditText(this);
     search.setSingleLine();
-    search.setTextColor(INK);
-    search.setHintTextColor(MUTED);
+    search.setTextColor(inkColor);
+    search.setHintTextColor(mutedColor);
     search.setTextSize(15);
     search.setHint(R.string.search);
     search.setText(query);
+    GradientDrawable searchBackground = shape(surfaceColor, 16);
+    searchBackground.setStroke(dp(1), outlineColor);
+    search.setBackground(searchBackground);
+    search.setPadding(dp(14), dp(12), dp(14), dp(12));
+    search.setMinHeight(dp(52));
+    search.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_search, 0, 0, 0);
+    search.setCompoundDrawableTintList(ColorStateList.valueOf(getColor(R.color.scribe_cadet_blue)));
+    search.setCompoundDrawablePadding(dp(10));
     content.addView(search);
     search.addTextChangedListener(
         new TextWatcher() {
@@ -328,12 +392,15 @@ public final class MainActivity extends Activity {
         text(
             getString(R.string.no_lectures) + "\n\n" + getString(R.string.no_lectures_hint),
             18,
-            MUTED);
+            mutedColor);
     empty.setGravity(Gravity.CENTER);
     content.addView(empty);
     list.setEmptyView(empty);
     list.setOnItemClickListener((p, v, index, id) -> openLecture(lectures.get(index).id()));
-    content.addView(button(R.string.new_recording, true, this::record));
+    Button recordButton = button(R.string.new_recording, true, this::record);
+    recordButton.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_mic, 0, 0, 0);
+    recordButton.setCompoundDrawableTintList(ColorStateList.valueOf(primaryInkColor));
+    content.addView(recordButton);
     content.addView(
         button(
             R.string.import_audio,
@@ -378,15 +445,16 @@ public final class MainActivity extends Activity {
             LinearLayout wrapper = column();
             wrapper.setPadding(0, dp(5), 0, dp(5));
             LinearLayout c = card();
-            TextView name = text(title(l), 19, INK);
+            TextView name = text(title(l), 19, inkColor);
             name.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
             c.addView(name);
             c.addView(
                 text(
                     courseName(l.course()) + "  ·  " + date(l.created(), "dd MMM · HH:mm"),
                     13,
-                    MUTED));
-            c.addView(text(status(l.status()) + "  ·  " + Core.clock(l.duration()), 13, ACCENT));
+                    mutedColor));
+            c.addView(
+                text(status(l.status()) + "  ·  " + Core.clock(l.duration()), 13, actionColor));
             wrapper.addView(c);
             return wrapper;
           }
@@ -543,10 +611,10 @@ public final class MainActivity extends Activity {
               render();
             });
     Button more = button(R.string.more, false, this::more);
-    top.addView(back, new LinearLayout.LayoutParams(0, dp(44), 1));
-    top.addView(more, new LinearLayout.LayoutParams(-2, dp(44)));
+    top.addView(back, new LinearLayout.LayoutParams(0, -1, 1));
+    top.addView(more, new LinearLayout.LayoutParams(-2, -1));
     content.addView(top);
-    TextView name = text(title(lecture), 25, INK);
+    TextView name = text(title(lecture), 25, inkColor);
     name.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
     content.addView(name);
     content.addView(
@@ -554,16 +622,20 @@ public final class MainActivity extends Activity {
             getString(R.string.assign_course) + " · " + courseName(lecture.course()),
             false,
             () -> chooseCourse(lectureId)));
-    detailState = text(status(lecture.status()), 14, ACCENT);
+    detailState = text(status(lecture.status()), 14, actionColor);
     content.addView(detailState);
-    detailProgress = text("", 13, MUTED);
+    detailProgress = text("", 13, mutedColor);
     content.addView(detailProgress);
     if (detailMode.equals("recording")) {
       LinearLayout controls = card();
-      recordingClock = text("00:00", 36, INK);
+      recordingClock = text("00:00", 36, inkColor);
+      recordingClock.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+      recordingClock.setGravity(Gravity.CENTER);
       controls.addView(recordingClock);
       meter = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
       meter.setMax(100);
+      meter.setProgressTintList(ColorStateList.valueOf(getColor(R.color.scribe_sea_green)));
+      meter.setProgressBackgroundTintList(ColorStateList.valueOf(surfaceTintColor));
       controls.addView(meter, new LinearLayout.LayoutParams(-1, dp(10)));
       pause =
           button(
@@ -606,18 +678,25 @@ public final class MainActivity extends Activity {
     }
     LinearLayout actions = row();
     Button marks = button(R.string.markers, false, this::showMarks);
-    actions.addView(marks, new LinearLayout.LayoutParams(0, dp(44), 1));
+    actions.addView(marks, new LinearLayout.LayoutParams(0, -1, 1));
     actions.addView(
-        button(R.string.copy, false, this::copy), new LinearLayout.LayoutParams(0, dp(44), 1));
+        button(R.string.copy, false, this::copy), new LinearLayout.LayoutParams(0, -1, 1));
     actions.addView(
-        button(R.string.export, false, this::export), new LinearLayout.LayoutParams(0, dp(44), 1));
+        button(R.string.export, false, this::export), new LinearLayout.LayoutParams(0, -1, 1));
     content.addView(actions);
+    content.addView(
+        button(
+            R.string.report_problem,
+            false,
+            () ->
+                startActivity(
+                    new Intent(this, ReportActivity.class).putExtra("lecture", lectureId))));
     note(content, R.string.transcript_hint);
     list = new ListView(this);
     list.setDivider(null);
     list.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
     content.addView(list, new LinearLayout.LayoutParams(-1, 0, 1));
-    TextView empty = text(R.string.no_transcript, 18, MUTED);
+    TextView empty = text(R.string.no_transcript, 18, mutedColor);
     content.addView(empty);
     list.setEmptyView(empty);
     list.setOnItemClickListener(
@@ -745,10 +824,14 @@ public final class MainActivity extends Activity {
             v.setPadding(dp(14), dp(10), dp(14), dp(10));
             boolean marked = starred.contains(s.id());
             v.setBackground(
-                shape(s.id() == highlightId ? 0xff355447 : marked ? 0xff2a3f32 : BG, 12));
+                shape(
+                    s.id() == highlightId
+                        ? highlightColor
+                        : marked ? surfaceTintColor : surfaceColor,
+                    16));
             if (prefs.getBoolean("timestamps", true) || marked)
-              v.addView(text((marked ? "★  " : "") + Core.clock(s.start()), 12, ACCENT));
-            TextView passage = text(s.text(), 18, INK);
+              v.addView(text((marked ? "★  " : "") + Core.clock(s.start()), 12, actionColor));
+            TextView passage = text(s.text(), 18, inkColor);
             passage.setLineSpacing(dp(3), 1.08f);
             v.addView(passage);
             return v;
@@ -893,7 +976,26 @@ public final class MainActivity extends Activity {
     LinearLayout page = column();
     scroll.addView(page);
     content.addView(scroll, new LinearLayout.LayoutParams(-1, -1));
-    page.addView(text(R.string.settings, 26, INK));
+    page.addView(text(R.string.settings, 26, inkColor));
+    page.addView(
+        button(
+            R.string.help,
+            false,
+            () -> {
+              screen = "help";
+              render();
+            }));
+    Switch darkTheme = new Switch(this);
+    darkTheme.setText(R.string.dark_theme);
+    darkTheme.setTextColor(inkColor);
+    darkTheme.setPadding(0, dp(16), 0, dp(16));
+    darkTheme.setChecked(prefs.getBoolean("dark_theme", false));
+    darkTheme.setOnCheckedChangeListener(
+        (v, checked) -> {
+          prefs.edit().putBoolean("dark_theme", checked).apply();
+          ScribeApp.applyNightMode(this);
+        });
+    page.addView(darkTheme);
     note(page, R.string.ui_language);
     Spinner ui = spinner(List.of("English", "Română"));
     String language = getResources().getConfiguration().getLocales().get(0).getLanguage();
@@ -938,7 +1040,7 @@ public final class MainActivity extends Activity {
         });
     Switch times = new Switch(this);
     times.setText(R.string.timestamps);
-    times.setTextColor(INK);
+    times.setTextColor(inkColor);
     times.setPadding(0, dp(16), 0, dp(16));
     times.setChecked(prefs.getBoolean("timestamps", true));
     times.setOnCheckedChangeListener(
@@ -946,7 +1048,7 @@ public final class MainActivity extends Activity {
     page.addView(times);
     Switch deletion = new Switch(this);
     deletion.setText(R.string.delete_audio);
-    deletion.setTextColor(INK);
+    deletion.setTextColor(inkColor);
     deletion.setPadding(0, dp(12), 0, dp(12));
     deletion.setChecked(prefs.getBoolean("delete_audio", false));
     deletion.setOnCheckedChangeListener(
@@ -961,8 +1063,54 @@ public final class MainActivity extends Activity {
                 R.string.local_storage,
                 String.format(Locale.ROOT, "%.1f", StorageGuard.available(this) / 1e9)),
             14,
-            MUTED));
+            mutedColor));
     note(page, R.string.privacy);
+  }
+
+  private void help() {
+    content.addView(
+        button(
+            R.string.help_back,
+            false,
+            () -> {
+              screen = "settings";
+              render();
+            }));
+    ScrollView scroll = new ScrollView(this);
+    LinearLayout page = column();
+    scroll.addView(page);
+    content.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
+    TextView greeting = text(R.string.help_greeting, 26, inkColor);
+    greeting.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+    greeting.setAccessibilityHeading(true);
+    page.addView(greeting);
+    page.addView(text(R.string.help_intro, 16, inkColor));
+    helpSection(page, R.string.help_record_title, R.string.help_record_body);
+    helpSection(page, R.string.help_transcribe_title, R.string.help_transcribe_body);
+    helpSection(page, R.string.help_library_title, R.string.help_library_body);
+    helpSection(page, R.string.help_transcript_title, R.string.help_transcript_body);
+    helpSection(page, R.string.help_import_title, R.string.help_import_body);
+    helpSection(page, R.string.help_save_title, R.string.help_save_body);
+    helpSection(page, R.string.help_settings_title, R.string.help_settings_body);
+    helpSection(page, R.string.help_audio_title, R.string.help_audio_body);
+    helpSection(page, R.string.help_trouble_title, R.string.help_trouble_body);
+    helpSection(page, R.string.help_updates_title, R.string.help_updates_body);
+    helpSection(page, R.string.help_report_title, R.string.help_report_body);
+    page.addView(text(R.string.help_footer, 16, inkColor));
+  }
+
+  private void helpSection(LinearLayout page, int title, int body) {
+    LinearLayout section = card();
+    LinearLayout.LayoutParams spacing = new LinearLayout.LayoutParams(-1, -2);
+    spacing.setMargins(0, dp(12), 0, 0);
+    page.addView(section, spacing);
+    TextView heading = text(title, 18, inkColor);
+    heading.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+    heading.setAccessibilityHeading(true);
+    section.addView(heading);
+    TextView explanation = text(body, 16, inkColor);
+    explanation.setLineSpacing(dp(3), 1);
+    section.addView(explanation);
   }
 
   private Spinner spinner(List<String> items) {
@@ -971,12 +1119,13 @@ public final class MainActivity extends Activity {
         new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, items);
     s.setAdapter(adapter);
     s.setMinimumHeight(dp(48));
+    s.setBackgroundTintList(ColorStateList.valueOf(getColor(R.color.scribe_cadet_blue)));
     return s;
   }
 
   private EditText edit(String value) {
     EditText e = new EditText(this);
-    e.setTextColor(INK);
+    e.setTextColor(inkColor);
     e.setTextSize(18);
     e.setPadding(dp(20), dp(12), dp(20), dp(12));
     e.setText(value);

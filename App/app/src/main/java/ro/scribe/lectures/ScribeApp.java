@@ -1,6 +1,7 @@
 package ro.scribe.lectures;
 
 import android.app.Application;
+import android.app.UiModeManager;
 import android.content.Context;
 import android.content.res.Configuration;
 import java.util.Locale;
@@ -9,7 +10,15 @@ public final class ScribeApp extends Application {
   @Override
   public void onCreate() {
     super.onCreate();
+    applyNightMode(this);
     Store.get(this).recover();
+  }
+
+  public static void applyNightMode(Context context) {
+    boolean dark = context.getSharedPreferences("settings", 0).getBoolean("dark_theme", false);
+    context
+        .getSystemService(UiModeManager.class)
+        .setApplicationNightMode(dark ? UiModeManager.MODE_NIGHT_YES : UiModeManager.MODE_NIGHT_NO);
   }
 
   // Both languages are packaged locally; bundle.language.enableSplit is disabled.

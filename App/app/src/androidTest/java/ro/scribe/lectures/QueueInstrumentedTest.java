@@ -55,6 +55,10 @@ public class QueueInstrumentedTest {
             assertTrue(store.segmentCount(chunk) > 0);
             assertTrue(
                 store.segments(lecture).toString().toLowerCase(Locale.ROOT).contains("country"));
+            String diagnostics = store.reportDiagnostics(lecture, 0, Long.MAX_VALUE).toString();
+            assertTrue(diagnostics, diagnostics.contains("recognition_elapsed_ms"));
+            assertTrue(diagnostics, diagnostics.contains("decode_elapsed_ms"));
+            assertFalse(diagnostics, diagnostics.toLowerCase(Locale.ROOT).contains("country"));
           } else {
             assertTrue(audio.isFile());
             assertEquals(0, store.segmentCount(chunk));

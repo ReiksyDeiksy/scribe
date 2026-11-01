@@ -87,6 +87,10 @@ public class UiInstrumentedTest {
             });
         instrumentation.waitForIdleSync();
         assertTrue(contains(activity.getWindow().getDecorView(), "Acesta este"));
+        assertTrue(
+            contains(
+                activity.getWindow().getDecorView(),
+                language.equals("ro") ? "Raportează o problemă" : "Report a problem"));
         assertTrue(contains(activity.getWindow().getDecorView(), "★  00:00"));
         assertTrue(
             contains(

@@ -1,0 +1,13 @@
+<resources>
+    <item name="report_kind" type="id" />
+    <item name="report_scope" type="id" />
+    <item name="report_passage" type="id" />
+    <item name="report_from" type="id" />
+    <item name="report_until" type="id" />
+    <item name="report_audio" type="id" />
+    <item name="report_text" type="id" />
+    <item name="report_note" type="id" />
+    <item name="report_expected" type="id" />
+    <item name="report_prepare" type="id" />
+    <item name="report_share" type="id" />
+</resources>

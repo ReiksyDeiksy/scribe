@@ -1,3 +1,55 @@
+# Problem reports and file sharing — 1 November 2026
+
+Version `0.1.2-test`, versionCode `3`, adds a lecture-level report screen with
+whole-lecture/passage/time-range selection, opt-in audio/text, notes and expected
+words, an attachment/size preview, Android sharing and document-picker saving.
+English/Romanian and both themes are supported. WhatsApp is selected by the user
+in Android's sharesheet; the app never sends automatically.
+
+New processing stores bounded timing/error measurements without transcript text.
+Database version 2 preserves original recognised passage text separately from
+edits; its non-destructive version-1 migration leaves legacy originals unknown.
+The Windows inspector validates report archives without extracting/executing them.
+
+Verification:
+
+- Debug/release builds and lint passed. Both lint reports say **No issues found**.
+- JVM tests: **7/7 passed**. Windows report-inspector tests: **3/3 passed**.
+- Full signed-release Android regression: **17/17 passed**, 114.507 seconds, on
+  the Android 15 tablet emulator. This covers capture/rollover/pause/screen-off,
+  streaming import, actual English recognition, queue/retention, store/search,
+  themes/help, bilingual UI, and eight report-specific tests.
+- Report checks include exact PCM excerpt boundaries across decode windows and
+  recording sections, actual end time for unknown-duration inputs, unchanged
+  full audio, original/corrected text, attachment opt-in, missing audio, failed
+  export cleanup, recording priority, legacy migration and recreated drafts.
+- A receiver activity in the **separate test APK/process** opened the shared ZIP.
+  Tests verified no access before granting the URI, no write grant, a non-exported
+  provider, rejection of traversal and inability to share unrelated private files.
+- The final APK, including the third-party license asset, passed the eight report
+  tests again: **8/8**, 9.986 seconds, at 1080 x 2400 / 420 dpi / 1.3 font scale,
+  in English/Romanian and light/dark themes. Emulator display settings restored.
+- A real synthetic Android report was transferred to Windows and successfully
+  checked with `tools/inspect_report.py`, including its audio checksum and scope.
+- Release signer matches the existing certificate. APK signature v2, native/ZIP
+  16 KiB alignment, pinned model SHA-256 and asset allowlist all passed. The
+  allowlist now also permits the Apache license and validated compiled AndroidX
+  baseline-profile assets. No INTERNET permission or private media/key payload.
+
+Prepared update:
+`artifacts/private-release/scribe-0.1.2-test-vc3-reports-dfa18077/scribe-0.1.2-test-vc3.apk`
+(70,557,462 bytes). SHA-256:
+`dfa18077f1fc46cc87a4de365dc4d9241497518b9bd3412ad64ab7f3ff9c793e`.
+The folder also contains the installation guide, checksum, release metadata,
+signature evidence and payload audit. No delivery or publishing was performed.
+
+Logs: `report-final-build.log`, `report-release-regression.log`,
+`report-release-phone.log`, `report-package-build.log`. UI captures and the
+synthetic ZIP are under `artifacts/qa/reports/`. Real Samsung WhatsApp sending,
+Romanian accuracy and three-hour performance still require physical-device tests.
+
+---
+
 # First Android test build — 22 October 2026
 
 ## Build and payload
@@ -99,3 +151,125 @@ reports remain outside this build.
 
 The desktop project under `../PC` was not edited. Its move was already present
 when this task began. The Git directory remains at the shared parent root.
+
+## Turquoise / puffin visual update — 1 November 2026
+
+- Selected puffin-and-quill concept 09 added to the header, Android splash, and
+  adaptive launcher icon on a #00CED1 background. A monochrome silhouette is
+  included for notifications and Android themed icons. The circular adaptive
+  icon was inspected in Android App info; beak and quill remain visible.
+- Shared colour resources now provide turquoise actions, pale mint backgrounds,
+  white cards, dark ink text, and the supplied mint/blue supporting colours.
+  Dialogs, spinners, switches, and system bars use the matching light theme.
+- Navigation gained icons and spacing. Search and cards have rounded outlines.
+  Transcript action rows grow to fit translated labels; no fixed-height text
+  clipping remains in the inspected English/Romanian phone layouts.
+- Recording, import, transcription, retention, storage and export logic were
+  not changed. The service change selects the monochrome notification drawable.
+  No new permissions, libraries, or network access were introduced.
+
+Validation for this update:
+
+- Debug and signed release builds succeeded. Final debug/release lint reports:
+  **No issues found**. Final JVM suite: **6/6 passed**.
+- Existing full Android regression suite: **7/7 passed**, 96.915 seconds, on the
+  Android 15 emulator, covering capture/pause/rollover/screen-off, streaming
+  import, actual speech recognition, queue/retention, store and bilingual UI.
+- After the final icon sizing, navigation spacing, and translated-button fixes,
+  the existing bilingual UI test was repeated on the signed release at a
+  phone configuration (1080 x 2400, 420 dpi): **1/1 passed**, 5.504 seconds.
+  The final signed release also passed the same test at the original tablet
+  configuration (800 x 1280, 160 dpi): **1/1 passed**, 5.177 seconds.
+  A separate short virtual-microphone check confirmed the final recording,
+  pause/resume label, and stop controls. Settings and its language picker were
+  also opened and inspected.
+- Checked contrast ratios: ink on primary turquoise **7.29:1**; dark turquoise
+  text on white **6.14:1**; secondary text on the mint canvas **6.07:1**; ink on
+  aquamarine **11.63:1**.
+- Final release signature and 16 KB zip/native alignment verified. The APK
+  payload audit passed: pinned speech-model digest, expected assets only,
+  both supported ABIs, no private media or signing-key payload.
+
+Installable output: `artifacts/scribe-turquoise.apk` (65,549,464 bytes).
+SHA-256: `aa6c5a5f931b8fc2d20b044c62079111a9d5cec19eec0a10824ed34c7011aecc`.
+Its companion checksum is `artifacts/scribe-turquoise.sha256` and the payload
+audit is `artifacts/apk-audit.json`. Build/test logs use the `design-` prefix.
+Real emulator screenshots are under `artifacts/qa/turquoise/`; phone captures
+from the final signed release use the `phone-` prefix. They contain synthetic
+test content, not real lecture transcripts.
+
+The update has not been installed or checked on the physical Samsung tablet.
+
+Caption follow-up: the English and Romanian tagline resources now both show
+`Hello there my Puffin! ^w^`. The release APK above was rebuilt, release lint
+reported no issues, and its payload audit passed. Earlier screenshots and UI
+test results predate this text-only follow-up.
+
+## Optional dark theme — 1 November 2026
+
+- Added a saved Dark theme / Temă întunecată switch in Settings. Light remains
+  the default. Android's app-local night mode applies the choice to native
+  widgets, dialogs, splash, system bars and activity resources.
+- The five brand colours and turquoise launcher background are identical in
+  both themes. Dark surfaces and light text have separate night resources;
+  lettering on turquoise primary buttons stays dark in both modes.
+- Final debug/release builds and lint passed (no issues); JVM tests: 6/6 passed.
+  Full Android regression suite: 8/8 passed in 102.158 seconds, including the
+  new settings-toggle, activity-recreation and saved-choice check.
+- The final signed release passed the theme test separately (1/1, 4.529 s).
+  A manual UI check confirmed the choice survives force-stop and full process
+  relaunch. English/Romanian transcript UI in dark mode also passed (1/1,
+  5.307 s). Dark Settings, Library, transcripts and native date picker were
+  captured and visually inspected on the Android 15 tablet emulator.
+- Checked text contrast ratios in dark mode: primary-button text 7.29:1,
+  body text on cards 13.08:1, secondary text on background 9.30:1,
+  turquoise text on tinted surfaces 5.84:1, highlighted text 7.30:1.
+- The updated signed APK is artifacts/scribe-turquoise.apk with its checksum
+  and payload audit alongside it. Signature and 16 KB zip/native alignment
+  passed. No permissions, dependencies or audio-processing logic changed.
+
+Theme screenshots: artifacts/qa/dark-theme/. Build and test logs use the
+dark-theme- prefix. Physical Samsung tablet verification is still required.
+
+## Personal offline help - 1 November 2026
+
+- Added Settings > Help / Setări > Ajutor, with a personal greeting for Mara
+  and ten short chapters covering recording and marks, transcription, library
+  and courses, playback and corrections, imports, export/sharing/deletion,
+  settings, audio retention, troubleshooting and direct APK updates.
+- Help uses the existing light/dark palette and local English/Romanian resources.
+  The back button and Android Back return to Settings. The help screen survives
+  activity recreation; Settings stays selected in the bottom navigation.
+- App copy contains no em dashes. The two personal sign-offs use a newline
+  before Daniel instead. Checked both XML string sets and the compiled release
+  resource values for U+2014 after the final rebuild.
+- Version is `0.1.1-test`, versionCode `2`. Package name, private signing key,
+  permissions, database schema and audio-processing behaviour are unchanged.
+
+Validation:
+
+- Debug/release builds and both lint checks passed; 6 JVM tests passed.
+- Full Android regression suite: **9/9 passed**, 103.877 seconds, on the Android
+  15 x86_64 tablet emulator. This includes capture/pause/rollover/screen-off,
+  import, native speech recognition, queue/retention, store, themes, transcripts
+  and the new help-navigation test.
+- After the final typography-only change, the signed release passed the help
+  test again on the 800 x 1280 / 160 dpi tablet (**1/1**, 10.679 seconds) and
+  1080 x 2400 / 420 dpi phone with font scale 1.3 (**1/1**, 11.896 seconds).
+  Each run covers both languages and themes, reaching the final paragraph,
+  activity recreation, the explicit back button and the Android Back key.
+  Emulator display/font overrides were restored afterwards.
+- Screenshots from the final signed release are under `artifacts/qa/help/`.
+  Tablet and phone samples were visually checked for wrapping and readability.
+- APK signature, existing certificate, payload/model digest and 16 KB zip/native
+  alignment passed again. No INTERNET permission, private media or signing keys
+  are included. No dependencies or remote help services were added.
+
+Prepared APK:
+`artifacts/private-release/scribe-0.1.1-test-vc2-d06e3745/scribe-0.1.1-test-vc2.apk`
+(65,558,808 bytes).
+
+SHA-256: `d06e374579569d2b7c80487fa6862e90163fbb51863ca2b0db58f2267975783a`.
+The package includes installation instructions, a checksum and `release.json`.
+Logs for this work use the `help-` prefix. The physical Samsung tablet and its
+microphone, battery, heat and long-lecture performance remain unverified here.

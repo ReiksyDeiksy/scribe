@@ -9,6 +9,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public final class Store extends SQLiteOpenHelper {
   public record Course(long id, String name) {}
@@ -66,7 +69,7 @@ public final class Store extends SQLiteOpenHelper {
     super(
         context,
         databaseName,
-        1,
+        2,
         new SQLiteDatabase.OpenParams.Builder()
             .addOpenFlags(SQLiteDatabase.CREATE_IF_NECESSARY)
             .setJournalMode(SQLiteDatabase.JOURNAL_MODE_WAL)
@@ -95,7 +98,7 @@ public final class Store extends SQLiteOpenHelper {
     db.execSQL(
         "CREATE TABLE segments(id INTEGER PRIMARY KEY, chunk INTEGER NOT NULL REFERENCES chunks(id)"
             + " ON DELETE CASCADE, start INTEGER NOT NULL, end INTEGER NOT NULL, text TEXT NOT"
-            + " NULL, UNIQUE(chunk,start,end))");
+            + " NULL, original_text TEXT, UNIQUE(chunk,start,end))");
     db.execSQL(
         "CREATE TABLE marks(id INTEGER PRIMARY KEY, lecture TEXT NOT NULL REFERENCES lectures(id)"
             + " ON DELETE CASCADE, time INTEGER NOT NULL)");
@@ -113,11 +116,24 @@ public final class Store extends SQLiteOpenHelper {
     db.execSQL(
         "CREATE TRIGGER segment_update AFTER UPDATE OF text ON segments BEGIN UPDATE"
             + " transcript_search SET text=new.text WHERE docid=old.id; END");
+    createDiagnostics(db);
   }
 
   @Override
   public void onUpgrade(SQLiteDatabase db, int old, int next) {
-    throw new IllegalStateException("A non-destructive database migration is required");
+    if (old == 1 && next == 2) {
+      // Existing text may already have been edited. Do not claim it is the original ASR output.
+      db.execSQL("ALTER TABLE segments ADD COLUMN original_text TEXT");
+      createDiagnostics(db);
+    } else throw new IllegalStateException("A non-destructive database migration is required");
+  }
+
+  private static void createDiagnostics(SQLiteDatabase db) {
+    db.execSQL(
+        "CREATE TABLE diagnostics(id INTEGER PRIMARY KEY, lecture TEXT NOT NULL REFERENCES"
+            + " lectures(id) ON DELETE CASCADE, time INTEGER NOT NULL, start INTEGER NOT NULL,"
+            + " end INTEGER NOT NULL, kind TEXT NOT NULL, data TEXT NOT NULL)");
+    db.execSQL("CREATE INDEX diagnostics_lecture ON diagnostics(lecture,id)");
   }
 
   public synchronized List<Course> courses() {
@@ -314,6 +330,7 @@ public final class Store extends SQLiteOpenHelper {
         v.put("start", p.start());
         v.put("end", p.end());
         v.put("text", p.text());
+        v.put("original_text", p.text());
         db.insertWithOnConflict("segments", null, v, SQLiteDatabase.CONFLICT_IGNORE);
       }
       ContentValues v = new ContentValues();
@@ -360,6 +377,79 @@ public final class Store extends SQLiteOpenHelper {
     ContentValues v = new ContentValues();
     v.put("text", text);
     getWritableDatabase().update("segments", v, "id=?", new String[] {"" + id});
+  }
+
+  public synchronized void diagnostic(
+      String lecture, String kind, long start, long end, JSONObject data) {
+    SQLiteDatabase db = getWritableDatabase();
+    db.beginTransaction();
+    try {
+      ContentValues v = new ContentValues();
+      v.put("lecture", lecture);
+      v.put("time", System.currentTimeMillis());
+      v.put("start", start);
+      v.put("end", end);
+      v.put("kind", kind);
+      v.put("data", data.toString());
+      db.insertOrThrow("diagnostics", null, v);
+      db.execSQL(
+          "DELETE FROM diagnostics WHERE lecture=? AND id NOT IN (SELECT id FROM diagnostics"
+              + " WHERE lecture=? ORDER BY id DESC LIMIT 2048)",
+          new Object[] {lecture, lecture});
+      db.execSQL(
+          "DELETE FROM diagnostics WHERE id NOT IN (SELECT id FROM diagnostics ORDER BY id DESC"
+              + " LIMIT 8192)");
+      db.setTransactionSuccessful();
+    } finally {
+      db.endTransaction();
+    }
+  }
+
+  public synchronized JSONObject reportText(String lecture, long start, long end)
+      throws JSONException {
+    JSONArray passages = new JSONArray();
+    try (Cursor c =
+        getReadableDatabase()
+            .rawQuery(
+                "SELECT s.start,s.end,s.text,s.original_text FROM segments s JOIN chunks k ON"
+                    + " k.id=s.chunk WHERE k.lecture=? AND s.start<? AND s.end>? ORDER BY"
+                    + " s.start,s.id",
+                new String[] {lecture, Long.toString(end), Long.toString(start)})) {
+      while (c.moveToNext()) {
+        passages.put(
+            new JSONObject()
+                .put("start_ms", c.getLong(0))
+                .put("end_ms", c.getLong(1))
+                .put("text", c.getString(2))
+                .put("original_text", c.isNull(3) ? JSONObject.NULL : c.getString(3)));
+      }
+    }
+    return new JSONObject()
+        .put("passages", passages)
+        .put(
+            "scope",
+            "Overlapping passages are included in full; original_text is null for legacy text.");
+  }
+
+  public synchronized JSONArray reportDiagnostics(String lecture, long start, long end)
+      throws JSONException {
+    JSONArray events = new JSONArray();
+    try (Cursor c =
+        getReadableDatabase()
+            .rawQuery(
+                "SELECT time,start,end,kind,data FROM diagnostics WHERE lecture=?"
+                    + " AND (start<0 OR (start<? AND end>?)) ORDER BY id",
+                new String[] {lecture, Long.toString(end), Long.toString(start)})) {
+      while (c.moveToNext())
+        events.put(
+            new JSONObject()
+                .put("time_unix_ms", c.getLong(0))
+                .put("start_ms", c.getLong(1))
+                .put("end_ms", c.getLong(2))
+                .put("kind", c.getString(3))
+                .put("data", new JSONObject(c.getString(4))));
+    }
+    return events;
   }
 
   public synchronized long mark(String lecture, long time) {

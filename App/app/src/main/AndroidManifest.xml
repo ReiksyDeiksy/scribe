@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
-    <application android:name=".ScribeApp" android:label="@string/app_name" android:icon="@drawable/ic_scribe"
+    <application android:name=".ScribeApp" android:label="@string/app_name" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher"
         android:theme="@style/AppTheme" android:allowBackup="false" android:dataExtractionRules="@xml/data_extraction_rules" android:supportsRtl="true"
         android:usesCleartextTraffic="false">
         <activity android:name=".MainActivity" android:exported="true" android:launchMode="singleTop" android:configChanges="orientation|screenSize">
@@ -16,6 +16,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".ReportActivity" android:exported="false"
+            android:configChanges="orientation|screenSize" android:windowSoftInputMode="adjustResize" />
+        <provider android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.reports" android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/report_paths" />
+        </provider>
         <service android:name=".EngineService" android:exported="false"
             android:foregroundServiceType="microphone|dataSync|mediaProcessing" />
     </application>

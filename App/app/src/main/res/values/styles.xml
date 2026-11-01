@@ -1,13 +1,24 @@
 <resources>
-    <style name="AppTheme" parent="android:style/Theme.Material.NoActionBar">
+    <style name="BaseAppTheme" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+    <style name="AppTheme" parent="BaseAppTheme">
         <item name="android:fontFamily">sans</item>
-        <item name="android:colorAccent">#8CE8C1</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:statusBarColor">#101716</item>
-        <item name="android:navigationBarColor">#101716</item>
+        <item name="android:colorAccent">@color/scribe_action</item>
+        <item name="android:colorControlNormal">@color/scribe_muted</item>
+        <item name="android:colorControlHighlight">@color/scribe_surface_tint</item>
+        <item name="android:colorButtonNormal">@color/scribe_surface</item>
+        <item name="android:colorBackground">@color/scribe_background</item>
+        <item name="android:textColorPrimary">@color/scribe_ink</item>
+        <item name="android:textColorSecondary">@color/scribe_muted</item>
+        <item name="android:textColorHint">@color/scribe_muted</item>
+        <item name="android:statusBarColor">@color/scribe_background</item>
+        <item name="android:navigationBarColor">@color/scribe_background</item>
+        <item name="android:forceDarkAllowed">false</item>
         <item name="android:windowActionModeOverlay">true</item>
-        <item name="android:windowBackground">#101716</item>
-        <item name="android:windowSplashScreenBackground">#101716</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_scribe</item>
+        <item name="android:windowBackground">@color/scribe_background</item>
+        <item name="android:windowSplashScreenBackground">@color/scribe_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
     </style>
 </resources>
