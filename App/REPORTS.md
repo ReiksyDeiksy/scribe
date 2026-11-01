@@ -9,7 +9,7 @@
    the selected transcript**. Both are off initially. Add a short note and the
    correct words if useful; neither is required.
 4. Tap **Prepare report**, review the selected scope, attachments, size and
-   notes, then **Share report**. Choose WhatsApp and the chat with Daniel.
+   notes, then **Share report**. Choose WhatsApp and our chat.
    The recipient and final send remain your choice. **Save a copy** also writes
    the ZIP to a location selected with Android's file picker.
 

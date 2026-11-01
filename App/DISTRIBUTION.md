@@ -16,7 +16,7 @@ with the existing signing key; do not uninstall or clear data. See the latest
 section in `VALIDATION.md` for the package path and checks.
 
 Prepared package:
-`artifacts/private-release/scribe-0.1.3-test-vc4-patch-notes-3c6a1c74/`.
+`artifacts/private-release/scribe-0.1.3-test-vc4-patch-notes-1b852ec7/`.
 Send `scribe-0.1.3-test-vc4.apk` as a file; the installation guide and checksum
 are beside it. All previous packages remain unchanged.
 

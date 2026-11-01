@@ -110,5 +110,5 @@
     <string name="help_trouble_body">If a lecture needs attention, open it and read the message. Make space or let the tablet cool down if asked, then tap Continue transcription. A sudden shutdown can lose the unfinished bit of a recording. Your completed sections and saved text remain. The app works locally, with no account or cloud backup.</string>
     <string name="help_updates_title">10. When I send you an update</string>
     <string name="help_updates_body">Open the new APK and install it over scribe. Keep the existing app installed: uninstalling it or clearing its data deletes local recordings and text. Updates need your confirmation. A short window explains what changed. Settings → Patch notes keeps the update history.</string>
-    <string name="help_footer">If something looks wrong, send me a screenshot and tell me what you tapped.\nDaniel</string>
+    <string name="help_footer">If something looks wrong, send me a screenshot and tell me what you tapped.</string>
 </resources>

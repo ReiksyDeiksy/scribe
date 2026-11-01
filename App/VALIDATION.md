@@ -8,6 +8,9 @@ including for users who skipped version 3. The preference and any open dialog
 survive activity recreation. Recording, transcription, database schema and report
 sharing are unchanged.
 
+Personal instructions use the author's voice ("send me", "our chat") in both
+languages, including help and older notes. No author-name signature is appended.
+
 `AGENTS.md` and the distribution checklist now require short localized notes
 and usage instructions for every future user-visible update. A release check
 asserts that the newest note matches the installed app version.
@@ -17,17 +20,21 @@ Verification:
 - Debug/release builds and lint passed. Both lint reports: **No issues found**.
 - JVM tests: **7/7 passed**.
 - Full signed-release Android regression: **19/19 passed**, 129.138 seconds,
-  on the Android 15 tablet emulator. This includes the previous capture,
+  on the Android 15 tablet emulator before the final wording correction.
+  This includes the previous capture,
   streaming decode, actual English recognition, queue/retention, database,
   report-sharing, help/theme and transcript checks.
 - Patch-note instrumentation: **2/2 passed** on the signed release APK on the
   Android 15 tablet emulator. Covers existing/missing seen-version preferences,
   once-per-version behavior, active-lecture deferral, window recreation, history,
   Settings/back navigation, English/Romanian and both themes.
-- The same two patch-note tests passed again on the final APK at 1080 x 2400,
+- The same two patch-note tests passed again before the wording correction at 1080 x 2400,
   420 dpi and 1.3 font scale: **2/2**, 15.513 seconds. Tablet and phone captures
   were visually reviewed; long notes scroll and the dialog actions stay visible.
   The emulator display/font settings were restored afterwards.
+- After the wording correction, the final APK passed the affected patch-note,
+  help and report checks: **11/11**, 36.88 seconds, in both languages/themes.
+  Release build/lint, signing, payload and alignment checks passed again.
 - The emulator's existing signed version 3 installation was upgraded in place to
   version 4. All saved database, preferences and file hashes matched immediately
   before/after installation; no uninstall or data clearing was used.
@@ -36,9 +43,9 @@ Verification:
   dependencies, permissions, network connections or automatic sharing.
 
 Prepared update:
-`artifacts/private-release/scribe-0.1.3-test-vc4-patch-notes-3c6a1c74/scribe-0.1.3-test-vc4.apk`
-(70,583,770 bytes). SHA-256:
-`3c6a1c7425c5aed6295e928f76aab800447fe788fe099ffbbc89991cdb24247b`.
+`artifacts/private-release/scribe-0.1.3-test-vc4-patch-notes-1b852ec7/scribe-0.1.3-test-vc4.apk`
+(70,583,674 bytes). SHA-256:
+`1b852ec76a258abedfbc1575ff7c0d1341a8b2b062d35a1b99569b6ad77f046c`.
 Installation guide, checksum, public signing metadata and APK audit are beside it.
 No sending or publishing was performed. Physical Samsung testing is still needed;
 this update does not establish Romanian accuracy or three-hour performance.
@@ -46,7 +53,9 @@ this update does not establish Romanian accuracy or three-hour performance.
 Logs: `patch-build.log`, `patch-build-final.log`, `patch-window-tablet.log`,
 `patch-regression.log`, `patch-window-phone.log`,
 `patch-signature.log`, `patch-apk-audit.log`. Screenshots and upgrade hash evidence
-are in `artifacts/qa/patch-notes/`.
+are in `artifacts/qa/patch-notes/`. Final wording checks: `patch-wording-build.log`,
+`patch-wording-regression.log`, `patch-wording-audit.log`,
+`patch-wording-signature.log`.
 
 ---
 

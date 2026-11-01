@@ -1,7 +1,7 @@
 <resources>
     <string name="report_problem">Raportează o problemă</string>
     <string name="report_back">‹ Înapoi la curs</string>
-    <string name="report_intro">Ceva nu a mers? Alege ce să incluzi și spune-i lui Daniel ce s-a întâmplat. Poți verifica totul înainte de partajare.</string>
+    <string name="report_intro">Ceva nu a mers? Alege ce să incluzi și spune-mi ce s-a întâmplat. Poți verifica totul înainte de partajare.</string>
     <string name="report_kind">Ce nu a mers?</string>
     <string-array name="report_problems">
         <item>Transcriere greșită</item><item>Cuvinte lipsă</item><item>Prea lent</item>
@@ -19,7 +19,7 @@
     <string name="report_range_invalid">Introdu un început valid și un sfârșit ulterior, până la 24 de ore.</string>
     <string name="report_include_audio">Include înregistrarea selectată</string>
     <string name="report_include_text">Include transcrierea selectată</string>
-    <string name="report_attachments_hint">Pentru cuvinte greșite sau lipsă, include audio și text ca Daniel să le poată compara. Un interval partajează doar acea parte audio; un curs întreg poate crea un fișier mare.</string>
+    <string name="report_attachments_hint">Pentru cuvinte greșite sau lipsă, include audio și text ca să le pot compara. Un interval partajează doar acea parte audio; un curs întreg poate crea un fișier mare.</string>
     <string name="report_notes">Ce s-a întâmplat? (opțional)</string>
     <string name="report_note_hint">De exemplu: a repetat primele cuvinte și a omis următoarea propoziție.</string>
     <string name="report_expected">Ce ar trebui să scrie? (opțional)</string>
@@ -36,7 +36,7 @@
     <string name="report_preview_details">Mai sunt incluse: starea acestui curs, versiunea aplicației, setările modelului/limbii, modelul dispozitivului, versiunea Android și înregistrările disponibile despre durate/erori. Cursurile mai vechi pot să nu aibă măsurători. Raportul nu conține alte cursuri sau jurnale generale ale dispozitivului.</string>
     <string name="report_text_scope">Pasajele de text care se suprapun selecției sunt incluse integral, cu textul recunoscut inițial unde este disponibil și corecturile salvate.</string>
     <string name="report_missing_audio">O parte sau toată înregistrarea selectată nu mai este disponibilă și nu a putut fi atașată. Raportul listează secțiunile lipsă. Înregistrările șterse nu pot fi recuperate.</string>
-    <string name="report_share_hint">Apasă Partajează raportul, alege WhatsApp și apoi conversația cu Daniel. Nimic nu se trimite automat. Copia pregătită este temporară; salvează o copie dacă vrei să o păstrezi.</string>
+    <string name="report_share_hint">Apasă Partajează raportul, alege WhatsApp și apoi conversația noastră. Nimic nu se trimite automat. Copia pregătită este temporară; salvează o copie dacă vrei să o păstrezi.</string>
     <string name="report_share">Partajează raportul</string>
     <string name="report_save">Salvează o copie</string>
     <string name="report_saved">Raport salvat</string>
@@ -44,5 +44,5 @@
     <string name="report_share_failed">Partajarea nu a putut fi deschisă. Încearcă Salvează o copie.</string>
     <string name="report_edit">Modifică raportul</string>
     <string name="help_report_title">11. Raportarea unei probleme</string>
-    <string name="help_report_body">Deschide un curs și apasă Raportează o problemă. Alege ce nu a mers și tot cursul, un pasaj sau un interval de timp. Audio și textul sunt opționale: selectează-le pentru probleme de transcriere. Poți adăuga o notiță sau cuvintele corecte. Pregătește raportul arată ce este inclus și mărimea fișierului. Apasă Partajează raportul, alege WhatsApp și conversația cu Daniel. Nimic nu se trimite automat. Salvează o copie păstrează un fișier ZIP unde alegi tu. Oprește înregistrarea sau pune transcrierea în pauză înainte de a pregăti raportul. Audio șters nu poate fi atașat; cursurile vechi pot să nu aibă înregistrări despre durate.</string>
+    <string name="help_report_body">Deschide un curs și apasă Raportează o problemă. Alege ce nu a mers și tot cursul, un pasaj sau un interval de timp. Audio și textul sunt opționale: selectează-le pentru probleme de transcriere. Poți adăuga o notiță sau cuvintele corecte. Pregătește raportul arată ce este inclus și mărimea fișierului. Apasă Partajează raportul, alege WhatsApp și conversația noastră. Nimic nu se trimite automat. Salvează o copie păstrează un fișier ZIP unde alegi tu. Oprește înregistrarea sau pune transcrierea în pauză înainte de a pregăti raportul. Audio șters nu poate fi atașat; cursurile vechi pot să nu aibă înregistrări despre durate.</string>
 </resources>

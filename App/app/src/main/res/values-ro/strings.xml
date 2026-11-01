@@ -110,5 +110,5 @@
     <string name="help_trouble_body">Dacă un curs necesită atenție, deschide-l și citește mesajul. Eliberează spațiu sau lasă tableta să se răcească dacă ți se cere, apoi apasă Continuă transcrierea. O oprire bruscă poate pierde partea neterminată a unei înregistrări. Secțiunile încheiate și textul salvat rămân. Aplicația funcționează local, fără cont sau copie de siguranță în cloud.</string>
     <string name="help_updates_title">10. Când îți trimit o actualizare</string>
     <string name="help_updates_body">Deschide noul APK și instalează-l peste scribe. Păstrează aplicația instalată: dezinstalarea sau ștergerea datelor ei elimină înregistrările și textul local. Actualizările au nevoie de confirmarea ta. O fereastră scurtă explică ce s-a schimbat. Setări → Noutăți păstrează istoricul actualizărilor.</string>
-    <string name="help_footer">Dacă ceva nu merge, trimite-mi o captură de ecran și spune-mi ce ai apăsat.\nDaniel</string>
+    <string name="help_footer">Dacă ceva nu merge, trimite-mi o captură de ecran și spune-mi ce ai apăsat.</string>
 </resources>
