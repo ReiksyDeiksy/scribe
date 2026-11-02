@@ -6,7 +6,7 @@ are maintained in this repository, with separate source trees and build tools.
 | Project | Source and instructions | Technology |
 | --- | --- | --- |
 | Windows desktop | [PC/README.md](PC/README.md) | Python, PySide6, faster-whisper |
-| Android lecture recorder | [App/README.md](App/README.md) | Java, Android SDK, whisper.cpp |
+| Android lecture recorder | [App/README.md](App/README.md) | Java, Android SDK, sherpa-onnx / whisper.cpp |
 
 ## Windows desktop
 
@@ -21,9 +21,11 @@ interfaces, recording, timestamp marks and local transcription. See
 [the Android instructions](App/README.md) for toolchain preparation and builds, and
 [the validation notes](App/VALIDATION.md) for prior checks and real-device limits.
 
-The pinned whisper.cpp source and its licence are included. The public speech
-model and build toolchain are downloaded by the preparation scripts and excluded
-from Git. Signing keys remain private in `App/.tools/signing/`.
+Lecture mode uses Parakeet TDT through sherpa-onnx; Compatibility mode retains
+Whisper. The pinned whisper.cpp source and third-party licences are included.
+Public speech models, the prebuilt Lecture runtime and the build toolchain are
+downloaded by the preparation scripts and excluded from Git. Signing keys remain
+private in `App/.tools/signing/`.
 
 ## Working across computers
 
