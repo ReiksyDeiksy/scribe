@@ -324,6 +324,9 @@ public class ReportInstrumentedTest {
     try {
       try (SQLiteDatabase db = context.openOrCreateDatabase(name, 0, null)) {
         db.execSQL(
+            "CREATE TABLE lectures(id TEXT PRIMARY KEY,delete_audio INTEGER NOT NULL DEFAULT 0)");
+        db.execSQL("INSERT INTO lectures VALUES('legacy-lecture',1)");
+        db.execSQL(
             "CREATE TABLE segments(id INTEGER PRIMARY KEY, chunk INTEGER, start INTEGER, end"
                 + " INTEGER, text TEXT NOT NULL)");
         db.execSQL("INSERT INTO segments VALUES(1,1,0,1000,'existing correction')");
@@ -337,7 +340,7 @@ public class ReportInstrumentedTest {
         assertTrue(cursor.moveToFirst());
         assertEquals("existing correction", cursor.getString(0));
         assertTrue(cursor.isNull(1));
-        assertEquals(2, migrated.getReadableDatabase().getVersion());
+        assertEquals(3, migrated.getReadableDatabase().getVersion());
       }
     } finally {
       context.deleteDatabase(name);

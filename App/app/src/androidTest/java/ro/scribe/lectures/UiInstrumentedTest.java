@@ -8,6 +8,8 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -20,6 +22,88 @@ import org.junit.runner.RunWith;
 
 @RunWith(AndroidJUnit4.class)
 public class UiInstrumentedTest {
+  private static Button languageButton(View view, String prefix) {
+    if (view instanceof Button button && button.getText().toString().startsWith(prefix))
+      return button;
+    if (view instanceof ViewGroup group)
+      for (int i = 0; i < group.getChildCount(); i++) {
+        Button found = languageButton(group.getChildAt(i), prefix);
+        if (found != null) return found;
+      }
+    return null;
+  }
+
+  @Test
+  public void libraryLanguageShortcutPersistsRomanianEnglishAndAuto() throws Exception {
+    var instrumentation = InstrumentationRegistry.getInstrumentation();
+    Context context = instrumentation.getTargetContext();
+    var prefs = context.getSharedPreferences("settings", 0);
+    String oldUi = prefs.getString("ui_language", null),
+        oldAudio = prefs.getString("audio_language", null);
+    boolean hadSeen = prefs.contains(PatchNotes.SEEN_VERSION);
+    int oldSeen = prefs.getInt(PatchNotes.SEEN_VERSION, 0);
+    Activity activity = null;
+    try {
+      for (String ui : new String[] {"en", "ro"}) {
+        prefs
+            .edit()
+            .putString("ui_language", ui)
+            .putInt(PatchNotes.SEEN_VERSION, PatchNotes.latest().code())
+            .commit();
+        activity =
+            instrumentation.startActivitySync(
+                new Intent(context, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        instrumentation.waitForIdleSync();
+        Activity current = activity;
+        for (String code : new String[] {"ro", "en", "auto"}) {
+          instrumentation.runOnMainSync(
+              () -> {
+                Button button =
+                    languageButton(
+                        current.getWindow().getDecorView(),
+                        current.getString(R.string.lecture_language_value, ""));
+                assertNotNull(button);
+                button.performClick();
+              });
+          instrumentation.waitForIdleSync();
+          String label =
+              code.equals("auto")
+                  ? current.getString(R.string.automatic)
+                  : java.util.Locale.forLanguageTag(code)
+                      .getDisplayLanguage(
+                          current.getResources().getConfiguration().getLocales().get(0));
+          AccessibilityNodeInfo root = instrumentation.getUiAutomation().getRootInActiveWindow(),
+              choice = null;
+          for (AccessibilityNodeInfo node : root.findAccessibilityNodeInfosByText(label))
+            if (label.contentEquals(node.getText())) {
+              choice = node;
+              break;
+            }
+          assertNotNull(label, choice);
+          assertTrue(choice.performAction(AccessibilityNodeInfo.ACTION_CLICK));
+          instrumentation.waitForIdleSync();
+          assertEquals(code, prefs.getString("audio_language", null));
+          assertTrue(
+              contains(
+                  current.getWindow().getDecorView(),
+                  current.getString(R.string.lecture_language_value, label)));
+        }
+        instrumentation.runOnMainSync(current::finish);
+        activity = null;
+        instrumentation.waitForIdleSync();
+      }
+    } finally {
+      if (activity != null) {
+        Activity current = activity;
+        instrumentation.runOnMainSync(current::finish);
+      }
+      var edit = prefs.edit().putString("ui_language", oldUi).putString("audio_language", oldAudio);
+      if (hadSeen) edit.putInt(PatchNotes.SEEN_VERSION, oldSeen);
+      else edit.remove(PatchNotes.SEEN_VERSION);
+      edit.commit();
+    }
+  }
+
   private static boolean contains(View view, String text) {
     if (view instanceof TextView t && t.getText().toString().contains(text)) return true;
     if (view instanceof ViewGroup g)

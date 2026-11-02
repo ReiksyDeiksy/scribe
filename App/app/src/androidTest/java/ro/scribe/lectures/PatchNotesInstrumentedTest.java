@@ -189,7 +189,11 @@ public class PatchNotesInstrumentedTest {
         assertNotNull(node(activity.getString(R.string.patch_new)));
         assertNotNull(node(activity.getString(PatchNotes.latest().summary())));
         assertNotNull(
-            node(activity.getString(PatchNotes.latest().body()) + "\n\nLove ya, Mara <3"));
+            node(
+                activity.getString(PatchNotes.latest().body())
+                    + "\n\n"
+                    + activity.getString(PatchNotes.latest().signoff())));
+        assertEquals("I love youuuu\nDanny~", activity.getString(PatchNotes.find(6).signoff()));
         screenshot("patch-window-" + language + (dark ? "-dark" : "-light"));
         dialogButton(R.string.patch_history);
         instrumentation.runOnMainSync(

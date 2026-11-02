@@ -65,7 +65,7 @@
     <string name="automatic">Detect automatically</string>
     <string name="timestamps">Show timestamps</string>
     <string name="delete_audio">Delete successfully transcribed audio</string>
-    <string name="delete_audio_hint">Applies to new recordings. Audio is kept after errors or cancellation. Deleted audio cannot be replayed; imported originals are never deleted.</string>
+    <string name="delete_audio_hint">Applies to new recordings. Audio is deleted only after the lecture finishes without processing errors or review warnings. Checks cannot catch every word error; leave this off to review your recordings. Deleted audio cannot be replayed; imported originals are never deleted.</string>
     <string name="offline_hint">Fully on device. A multilingual speech model is included. No account, internet connection or model training is required.</string>
     <string name="model_label">An offline speech model is included.</string>
     <string name="permission_hint">Microphone access is needed to record a lecture. You can still import audio without it.</string>
@@ -103,9 +103,9 @@
     <string name="help_save_title">6. Saving, sharing and deleting</string>
     <string name="help_save_body">Copy text puts the transcript on your clipboard. Export TXT saves a text file where you choose. More → Share text sends it through another app. More → Delete lecture removes that lecture’s saved text and recordings from scribe; an imported original stays untouched. Export text you want to keep first.</string>
     <string name="help_settings_title">7. Making it yours</string>
-    <string name="help_settings_body">App language changes the menus between English and Romanian. Lecture language tells scribe which language to listen for; choose Romanian before recording or importing if that’s the lecture language. Automatic detection is also available. Show timestamps controls times in the text and exports. Dark theme changes the colours.</string>
+    <string name="help_settings_body">App language changes the menus between English and Romanian. Lecture language is also available at the top of Library. Choose Romanian or English before recording or importing when you know the language. Auto detects it from a clear speech section and keeps it for that lecture. Changing this setting applies to new lectures; existing text stays. Show timestamps controls times in the text and exports. Dark theme changes the colours.</string>
     <string name="help_audio_title">8. Keeping your recordings</string>
-    <string name="help_audio_body">Recordings are kept by default. Delete successfully transcribed audio applies only to new recordings. If you turn it on, each successfully transcribed section can be deleted before the rest finishes. Its text and marks remain, but you can’t listen to that audio again. Failed or unrecognised sections stay.</string>
+    <string name="help_audio_body">Recordings are kept by default. Delete successfully transcribed audio applies only to new recordings. If you turn it on, audio is deleted only when the lecture finishes without errors or review warnings. Checks cannot catch every recognition mistake. Keep this off if you want to listen and correct the text later. Text and marks remain after deletion; imported originals are never deleted. Remaining recordings in lectures created before this update are kept.</string>
     <string name="help_trouble_title">9. If something stops</string>
     <string name="help_trouble_body">If a lecture needs attention, open it and read the message. Make space or let the tablet cool down if asked, then tap Continue transcription. A sudden shutdown can lose the unfinished bit of a recording. Your completed sections and saved text remain. The app works locally, with no account or cloud backup.</string>
     <string name="help_updates_title">10. When I send you an update</string>

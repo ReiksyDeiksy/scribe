@@ -1,0 +1,10 @@
+<resources>
+    <string name="lecture_language_value">Limba cursului: %1$s</string>
+    <string name="language_detected">%1$s (detectată: %2$s)</string>
+    <string name="audio_language_hint">Alege Română sau Engleză când știi limba cursului. Detectarea automată o stabilește dintr-o secțiune cu vorbire clară și o păstrează pentru acel curs. Setarea se aplică înregistrărilor și importurilor noi.</string>
+    <string name="progress_percent">Procesat %1$s din %2$s · %3$d%%</string>
+    <string name="preparing_audio">Se pregătește următoarea secțiune audio…</string>
+    <string name="working_section">Se transcrie %1$s–%2$s · se lucrează de %3$s</string>
+    <string name="checking_section">Se verifică vorbirea dificilă la %1$s–%2$s · se lucrează de %3$s</string>
+    <string name="transcript_review">Unele secțiuni trebuie verificate. Înregistrarea lor este păstrată. Ascultă și corectează textul înainte să te bazezi pe el.</string>
+</resources>

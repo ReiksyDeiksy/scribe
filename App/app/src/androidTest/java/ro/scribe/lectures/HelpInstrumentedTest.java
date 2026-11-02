@@ -113,7 +113,7 @@ public class HelpInstrumentedTest {
                     find(
                         activity.getWindow().getDecorView(),
                         TextView.class,
-                        activity.getString(R.string.help_footer) + "\n\nLove ya, Mara <3");
+                        activity.getString(R.string.help_footer));
                 Rect visible = new Rect();
                 assertNotNull(footer);
                 assertTrue(

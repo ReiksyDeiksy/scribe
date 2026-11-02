@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 public final class Whisper implements AutoCloseable {
   static {
@@ -60,9 +61,26 @@ public final class Whisper implements AutoCloseable {
   }
 
   public JSONArray transcribe(float[] audio, String language, String previous) throws Exception {
+    // Compatibility entry point: previous recognized text must never become a prompt.
+    return recognize(audio, language, false).segments();
+  }
+
+  public record Recognition(
+      JSONArray segments,
+      String language,
+      double languageProbability,
+      double averageLogProbability) {}
+
+  public Recognition recognize(float[] audio, String language, boolean beam) throws Exception {
     int threads = Math.max(1, Math.min(3, Runtime.getRuntime().availableProcessors() - 1));
-    return new JSONArray(
-        new String(decode(handle, audio, language, previous, threads), StandardCharsets.UTF_8));
+    JSONObject result =
+        new JSONObject(
+            new String(decode(handle, audio, language, threads, beam), StandardCharsets.UTF_8));
+    return new Recognition(
+        result.getJSONArray("segments"),
+        result.getString("language"),
+        result.getDouble("language_probability"),
+        result.getDouble("average_log_probability"));
   }
 
   @Override
@@ -78,7 +96,7 @@ public final class Whisper implements AutoCloseable {
   private static native void close(long handle);
 
   private static native byte[] decode(
-      long handle, float[] audio, String language, String prompt, int threads) throws IOException;
+      long handle, float[] audio, String language, int threads, boolean beam) throws IOException;
 
   public static native void cancel();
 

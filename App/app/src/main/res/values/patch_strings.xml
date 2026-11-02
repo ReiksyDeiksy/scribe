@@ -6,6 +6,9 @@
     <string name="patch_done">Got it</string>
     <string name="patch_version_date">%1$s · %2$s</string>
     <string name="personal_signoff" translatable="false">Love ya, Mara &lt;3</string>
+    <string name="patch_6_summary">Clearer transcription and visible progress bar!</string>
+    <string name="patch_6_signoff" translatable="false">I love youuuu\nDanny~</string>
+    <string name="patch_6_body">I fixed a problem that could skip parts of your speech. Transcription now continues across recording sections to avoid wasteful tiny jobs. Difficult speech gets a limited extra check some words may still be wrong but the quality should have been improved overall.\n\nBefore recording or importing, tap Lecture language at the top of Library. Choose Romanian, English or Auto. Auto keeps the detected language for that lecture. This is done in order to minimise the confusion and stop the language model from switching languages on the fly.\n\nOpen a lecture to see the progress bar and animated working indicator ^w^\n\nAudio is kept when a result needs checking. Existing lectures keep their remaining audio, finished transcripts stay unchanged. Send me a problem report in our chat if anything looks wrong.</string>
     <string name="patch_5_summary">A personal note with every update</string>
     <string name="patch_5_body">Every update note now ends with a little message from me, including older notes in Settings → Patch notes. You can always open them again there.\n\nTo send me a transcription problem, open a lecture → Report a problem. Select the part and the audio or text you want to include, then Prepare report → Share report → WhatsApp → our chat.</string>
     <string name="patch_4_summary">A small window for new updates</string>

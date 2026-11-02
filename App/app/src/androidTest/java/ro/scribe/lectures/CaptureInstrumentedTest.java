@@ -64,6 +64,16 @@ public class CaptureInstrumentedTest {
           assertNotNull(media.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
         }
       }
+      List<Long> resumed = new java.util.ArrayList<>();
+      long resumedEnd =
+          LectureDecoder.decode(
+              context, chunks, 30000, () -> false, (start, samples) -> resumed.add(start));
+      assertFalse(resumed.isEmpty());
+      assertEquals(28000L, (long) resumed.get(0));
+      assertEquals(
+          chunks.get(chunks.size() - 1).start() + chunks.get(chunks.size() - 1).duration(),
+          resumedEnd,
+          2);
     } finally {
       if (EngineService.capture != null) EngineService.capture.stopped = true;
       if (EngineService.processing) EngineService.command(context, EngineService.CANCEL, null);

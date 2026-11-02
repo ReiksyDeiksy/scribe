@@ -1,6 +1,31 @@
 # Private APK distribution
 
-## Current update: personal sign-off, 1 November 2026
+## Current update: balanced transcription and progress, 2 November 2026
+
+Version `0.1.5-test`, versionCode **6**, removes recognized-text prompting,
+streams recognition windows across contiguous recording files, stabilizes Auto
+language and selectively retries difficult speech. Library exposes the existing
+lecture-language preference; lecture details show committed progress and an
+animated working indicator. See `TRANSCRIPTION.md` for recovery and retention.
+
+Prepared package:
+`artifacts/private-release/scribe-0.1.5-test-vc6-balanced-002886d5/`.
+Send `scribe-0.1.5-test-vc6.apk` as a file. Install over the existing app; do not
+uninstall or clear data. The existing app ID/signing key are unchanged. The
+installation guide, checksum, public signing metadata and APK audit are beside it.
+
+The current English patch note uses the user's supplied wording and the closing
+`I love youuuu` followed by `Danny~`; Romanian has the translated note and same
+closing. Earlier notes retain `Love ya, Mara <3`. Personal closings belong only
+in update notes, not Help or assistant replies. Every future update still needs
+localized notes and usage steps. Use versionCode **7 or greater** next.
+
+The paired private-recording emulator replay used about 13% less wall time.
+This is not a Samsung speed or whole-recording accuracy guarantee. Keep audio
+deletion off while checking transcripts, especially medical terms. Existing
+lectures retain their remaining audio after migration; finished text is unchanged.
+
+## Previous update: personal sign-off, 1 November 2026
 
 Version `0.1.4-test`, versionCode **5**, adds the exact `Love ya, Mara <3`
 closing to every patch-note window (including history) and the Help closing
@@ -14,7 +39,7 @@ the same signing key; do not uninstall or clear data. The installation guide,
 checksum, public signing metadata and APK audit are beside it.
 
 Future updates must retain the sign-off and add localized notes/usage steps.
-Use versionCode **6 or greater** for the next release. See `AGENTS.md` and the
+That release reserved versionCode **6 or greater** for its successor. See `AGENTS.md` and the
 latest `VALIDATION.md` entry. All previous packages remain unchanged.
 
 ## Previous update: patch notes, 1 November 2026
@@ -87,7 +112,7 @@ Herstelleranleitung:
 ## Nächstes Update vorbereiten
 
 1. In `app/build.gradle` den `versionCode` auf einen bisher nicht verwendeten,
-   höheren Wert setzen; nach dem aktuellen Paket mindestens `6`. Einen passenden
+   höheren Wert setzen; nach dem aktuellen Paket mindestens `7`. Einen passenden
    `versionName` vergeben. Immer kurze englische und rumänische Patch Notes samt
    nötiger Bedienhinweise ergänzen und die vorherigen Einträge behalten.
 2. `applicationId 'ro.scribe.lectures'` und den bestehenden Signaturschlüssel

@@ -39,6 +39,12 @@ public class NativeInstrumentedTest {
               (start, samples) -> {
                 frames[0] += samples.length;
                 JSONArray result = model.transcribe(samples, "en", "");
+                Whisper.Recognition automatic = model.recognize(samples, "auto", false);
+                assertEquals("en", automatic.language());
+                assertTrue(automatic.languageProbability() >= 0.5);
+                assertTrue(Double.isFinite(automatic.averageLogProbability()));
+                assertTrue(
+                    automatic.segments().toString().toLowerCase(Locale.ROOT).contains("country"));
                 for (int i = 0; i < result.length(); i++)
                   transcript.append(result.getJSONObject(i).getString("text"));
               });

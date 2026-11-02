@@ -1,3 +1,97 @@
+# Balanced transcription and visible progress — 2 November 2026
+
+Version `0.1.5-test`, versionCode `6`, fixes recognized-text prompting that could
+omit later speech, and streams 30-second recognition windows with two-second
+overlap across contiguous recording files. It keeps the existing base Q5 model,
+three-thread CPU limit, audio format and public APIs. Short source-file tails
+are carried into the next source; the actual final tail is still processed.
+
+Auto language is stored after a sufficiently long, nonempty, non-repetitive
+window with detection probability >= 0.5. Explicit lecture language remains
+available in Settings, with a new Library shortcut for new recordings/imports.
+Greedy decoding has a selective beam-5 retry, a six-window spacing rule and a
+cumulative retry-time gate. The latter is not a hard per-call time cap. Review
+flags are heuristic; specialist vocabulary can still be wrong.
+
+Lecture details show a determinate bar for committed audio, plus an animated
+working strip and section/elapsed-time label during an unfinished call. No ETA
+is fabricated. Database v3 stores detected language and sticky review state.
+Window text/checkpoints commit atomically across sources, preserving edits,
+original text, marks and resumability. Existing lectures have automatic deletion
+disabled during migration to retain their remaining audio. New-lecture defaults
+are unchanged. Only fully completed, unflagged lectures may auto-delete owned
+audio; imported originals are never deleted. Finished transcripts are unchanged.
+
+The current patch note matches the user's exact supplied English text, bold
+heading and `I love youuuu` / `Danny~` closing, with a Romanian translation.
+Older notes retain their previous closing. Help no longer receives that footer.
+
+Verification:
+
+- Final debug/release builds, both lint tasks (**No issues found**) and **10/10
+  JVM tests** passed. A synthetic three-hour PCM test verifies 386 bounded
+  windows, continuous samples and no overlap-only final job; it is not a real
+  three-hour device recording/transcription test.
+- Final signed release: **25 Android regression checks passed**, plus the
+  private replay test skipped by its default opt-in assumption (runner reports
+  `OK (26 tests)`, 161.088 seconds). Coverage includes real microphone rollover,
+  pause/screen-off and AAC resume; generated cross-file sample continuity;
+  cancellation, atomic checkpoints and saved corrections; native English/Auto
+  recognition; queue/retention; v1/v2 migrations/search/marks; report selection,
+  ZIPs and receiver read grants; languages/themes, progress and patch history.
+- The affected progress, patch-note, Help and Library language UI checks passed
+  at 1080 x 2400, 420 dpi and 1.3 font scale: **6/6**, 47.086 seconds. Tablet and
+  narrow-screen captures were visually reviewed. Display/font overrides reset.
+- Python report inspector: **3/3 tests passed**. Report schema remains 1; added
+  language/review metadata is compatible with the existing inspector.
+- Installed signed version 6 over version 5 without uninstalling/clearing data.
+  Database, preferences and saved-file hashes matched immediately before/after
+  installation. Separate migration tests verify edits, FTS, marks/checkpoints,
+  recognition state and legacy audio-retention changes after opening the DB.
+- APK signature, unchanged signing certificate, native/ZIP 16 KiB alignment,
+  pinned model hash and payload allowlist passed. No new permissions,
+  dependencies or Internet permission; no private audio, PDF, keys or analysis
+  outputs are packaged. Audio/text are still explicitly selected for sharing.
+
+Paired real-queue replay of the supplied 331.136-second, six-source recording
+on the same Android 15 x86_64 emulator:
+
+| Measurement | 0.1.4-test | 0.1.5-test |
+| --- | ---: | ---: |
+| Wall time | 314.389 s | 274.005 s |
+| Recognition time | 307.002 s | 266.710 s |
+| Recognition windows | 17 | 12 |
+| Beam retries | 0 | 2 (55.245 s combined) |
+
+This one paired replay used **12.85% less wall time**. Previously omitted MRI
+and ultrasound material returned, and all updated windows used Romanian.
+There is no verbatim spoken reference for whole-recording WER, and extra
+returned passages do not measure accuracy. The opening passage still has
+specialist-term errors. Ten updated windows were marked for review. Sampled
+native heap maxima were 693.5 MiB before and 727.2 MiB after (not process-wide
+peak memory). Both private replays passed and retained their source audio.
+Private fixtures/results stay in ignored local analysis storage; none are in Git.
+
+Physical Samsung accuracy, thermal/battery behavior and sustained three-hour
+capture/recognition still require on-device testing. These measurements do not
+establish a 13% improvement on Mara's tablet or reliable medical transcription.
+See `TRANSCRIPTION.md` for the pipeline, safeguards and opt-in replay procedure.
+
+Prepared update:
+`artifacts/private-release/scribe-0.1.5-test-vc6-balanced-002886d5/scribe-0.1.5-test-vc6.apk`
+(70,613,378 bytes). SHA-256:
+`002886d58631d75282090e72417361cb1eb13a1a951f81d2cba509a7a042a8ac`.
+Installation guide, checksum, public signing metadata and audit are beside it.
+Earlier packages remain unchanged. No sending or publishing was performed.
+
+Evidence: `balanced-final-package-build.log`, `balanced-final-regression.log`,
+`balanced-phone-ui.log`, `balanced-baseline-replay.log`,
+`balanced-updated-replay.log`, `balanced-apk-audit.log`,
+`balanced-signature.log`; screenshots, upgrade hashes and non-content benchmark
+summary under `artifacts/qa/balanced/`.
+
+---
+
 # Personal message sign-off — 1 November 2026
 
 Version `0.1.4-test`, versionCode `5`, appends exactly `Love ya, Mara <3` to

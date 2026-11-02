@@ -1,0 +1,12 @@
+<resources>
+    <item type="id" name="transcription_progress" />
+    <item type="id" name="transcription_working" />
+    <string name="lecture_language_value">Lecture language: %1$s</string>
+    <string name="language_detected">%1$s (%2$s detected)</string>
+    <string name="audio_language_hint">Choose Romanian or English when you know the lecture language. Auto detects it from a clear speech section and keeps it for that lecture. This setting applies to new recordings and imports.</string>
+    <string name="progress_percent">Processed %1$s of %2$s · %3$d%%</string>
+    <string name="preparing_audio">Preparing the next audio section…</string>
+    <string name="working_section">Transcribing %1$s–%2$s · working for %3$s</string>
+    <string name="checking_section">Checking difficult speech at %1$s–%2$s · working for %3$s</string>
+    <string name="transcript_review">Some sections need checking. Their audio is kept. Listen and correct the text before relying on it.</string>
+</resources>

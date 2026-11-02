@@ -75,6 +75,11 @@ public final class MainActivity extends Activity {
   private TextView recordingState, recordingClock, detailState, detailProgress;
   private Button pause;
   private ProgressBar meter;
+  private ProgressBar transcriptionProgress, workingIndicator;
+  private TextView workState, reviewNotice, detailLanguage;
+  private static final String[] AUDIO_CODES = {
+    "auto", "ro", "en", "de", "fr", "es", "it", "uk", "tr"
+  };
   private String screen = "library", lectureId, query = "", signature = "", exportLecture;
   private String detailMode = "";
   private long courseFilter;
@@ -266,6 +271,11 @@ public final class MainActivity extends Activity {
     recordingClock = null;
     detailState = null;
     detailProgress = null;
+    transcriptionProgress = null;
+    workingIndicator = null;
+    workState = null;
+    reviewNotice = null;
+    detailLanguage = null;
     meter = null;
     pause = null;
     root = column();
@@ -349,6 +359,13 @@ public final class MainActivity extends Activity {
 
   private void library() {
     note(content, R.string.tagline);
+    content.addView(
+        button(
+            getString(
+                R.string.lecture_language_value,
+                audioLanguageName(prefs.getString("audio_language", "auto"))),
+            false,
+            this::chooseAudioLanguage));
     EditText search = new EditText(this);
     search.setSingleLine();
     search.setTextColor(inkColor);
@@ -643,6 +660,23 @@ public final class MainActivity extends Activity {
     content.addView(detailState);
     detailProgress = text("", 13, mutedColor);
     content.addView(detailProgress);
+    detailLanguage = text("", 13, mutedColor);
+    content.addView(detailLanguage);
+    transcriptionProgress = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+    transcriptionProgress.setId(R.id.transcription_progress);
+    transcriptionProgress.setMax(1000);
+    transcriptionProgress.setProgressTintList(ColorStateList.valueOf(primaryColor));
+    transcriptionProgress.setProgressBackgroundTintList(ColorStateList.valueOf(surfaceTintColor));
+    content.addView(transcriptionProgress, new LinearLayout.LayoutParams(-1, dp(8)));
+    workingIndicator = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+    workingIndicator.setId(R.id.transcription_working);
+    workingIndicator.setIndeterminate(true);
+    workingIndicator.setIndeterminateTintList(ColorStateList.valueOf(actionColor));
+    content.addView(workingIndicator, new LinearLayout.LayoutParams(-1, dp(4)));
+    workState = text("", 13, mutedColor);
+    content.addView(workState);
+    reviewNotice = text(R.string.transcript_review, 14, actionColor);
+    content.addView(reviewNotice);
     if (detailMode.equals("recording")) {
       LinearLayout controls = card();
       recordingClock = text("00:00", 36, inkColor);
@@ -809,7 +843,38 @@ public final class MainActivity extends Activity {
         l.error().isEmpty()
             ? status(l.status())
             : getString(R.string.status_error, status(l.status()), error(l.error())));
-    detailProgress.setText(getString(R.string.progress, Core.clock(processed), Core.clock(total)));
+    int progress = total > 0 ? (int) Math.min(1000, processed * 1000 / total) : 0;
+    if (l.status().equals("done")) progress = 1000;
+    detailProgress.setText(
+        total > 0
+            ? getString(
+                R.string.progress_percent, Core.clock(processed), Core.clock(total), progress / 10)
+            : getString(R.string.progress, Core.clock(processed), Core.clock(total)));
+    transcriptionProgress.setProgress(progress);
+    transcriptionProgress.setVisibility(detailMode.equals("recording") ? View.GONE : View.VISIBLE);
+    transcriptionProgress.setContentDescription(detailProgress.getText());
+    boolean working = EngineService.processing && lectureId.equals(EngineService.activeLecture);
+    workingIndicator.setVisibility(working ? View.VISIBLE : View.GONE);
+    workState.setVisibility(working ? View.VISIBLE : View.GONE);
+    long began = EngineService.windowBeganMs;
+    workState.setText(
+        began > 0
+            ? getString(
+                EngineService.checkingSpeech ? R.string.checking_section : R.string.working_section,
+                Core.clock(EngineService.windowStartMs),
+                Core.clock(EngineService.windowEndMs),
+                Core.clock(Math.max(0, android.os.SystemClock.elapsedRealtime() - began)))
+            : getString(R.string.preparing_audio));
+    boolean review = store.needsReview(lectureId);
+    reviewNotice.setVisibility(review ? View.VISIBLE : View.GONE);
+    key.append(review);
+    String detected = store.detectedLanguage(lectureId);
+    String shown =
+        l.language().equals("auto") && !detected.isEmpty()
+            ? getString(
+                R.string.language_detected, audioLanguageName("auto"), audioLanguageName(detected))
+            : audioLanguageName(l.language());
+    detailLanguage.setText(getString(R.string.lecture_language_value, shown));
     if (signature.equals(key.toString())) return;
     signature = key.toString();
     int first = list.getFirstVisiblePosition();
@@ -1039,7 +1104,7 @@ public final class MainActivity extends Activity {
           public void onNothingSelected(AdapterView<?> p) {}
         });
     note(page, R.string.audio_language);
-    String[] codes = {"auto", "ro", "en", "de", "fr", "es", "it", "uk", "tr"};
+    String[] codes = AUDIO_CODES;
     Spinner audio =
         spinner(
             List.of(
@@ -1055,6 +1120,7 @@ public final class MainActivity extends Activity {
     String current = prefs.getString("audio_language", "auto");
     for (int i = 0; i < codes.length; i++) if (codes[i].equals(current)) audio.setSelection(i);
     page.addView(audio);
+    note(page, R.string.audio_language_hint);
     audio.setOnItemSelectedListener(
         new AdapterView.OnItemSelectedListener() {
           public void onItemSelected(AdapterView<?> p, View v, int n, long id) {
@@ -1151,10 +1217,7 @@ public final class MainActivity extends Activity {
     heading.setAccessibilityHeading(true);
     page.addView(heading);
     TextView body =
-        text(
-            getString(release.body()) + "\n\n" + getString(R.string.personal_signoff),
-            16,
-            inkColor);
+        text(getString(release.body()) + "\n\n" + getString(release.signoff()), 16, inkColor);
     body.setLineSpacing(dp(3), 1);
     page.addView(body);
     scroll.addView(page);
@@ -1218,11 +1281,35 @@ public final class MainActivity extends Activity {
     helpSection(page, R.string.help_trouble_title, R.string.help_trouble_body);
     helpSection(page, R.string.help_updates_title, R.string.help_updates_body);
     helpSection(page, R.string.help_report_title, R.string.help_report_body);
-    page.addView(
-        text(
-            getString(R.string.help_footer) + "\n\n" + getString(R.string.personal_signoff),
-            16,
-            inkColor));
+    page.addView(text(R.string.help_footer, 16, inkColor));
+  }
+
+  private String audioLanguageName(String code) {
+    return code.equals("auto")
+        ? getString(R.string.automatic)
+        : Locale.forLanguageTag(code)
+            .getDisplayLanguage(getResources().getConfiguration().getLocales().get(0));
+  }
+
+  private void chooseAudioLanguage() {
+    String[] names = new String[AUDIO_CODES.length];
+    int selected = 0;
+    for (int i = 0; i < AUDIO_CODES.length; i++) {
+      names[i] = audioLanguageName(AUDIO_CODES[i]);
+      if (AUDIO_CODES[i].equals(prefs.getString("audio_language", "auto"))) selected = i;
+    }
+    new AlertDialog.Builder(this)
+        .setTitle(R.string.audio_language)
+        .setSingleChoiceItems(
+            names,
+            selected,
+            (dialog, which) -> {
+              prefs.edit().putString("audio_language", AUDIO_CODES[which]).apply();
+              dialog.dismiss();
+              render();
+            })
+        .setNegativeButton(R.string.cancel, null)
+        .show();
   }
 
   private void helpSection(LinearLayout page, int title, int body) {

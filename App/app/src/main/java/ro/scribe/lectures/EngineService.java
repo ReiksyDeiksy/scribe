@@ -220,23 +220,82 @@ public final class EngineService extends Service {
     worker.execute(this::processQueue);
   }
 
+  public static volatile long windowStartMs, windowEndMs, windowBeganMs;
+  public static volatile boolean checkingSpeech;
+
+  private static long covered(JSONArray segments) throws Exception {
+    long end = 0, covered = 0;
+    for (int i = 0; i < segments.length(); i++) {
+      JSONObject segment = segments.getJSONObject(i);
+      long a = Math.max(end, segment.getLong("start")), b = segment.getLong("end");
+      if (b > a) covered += b - a;
+      end = Math.max(end, b);
+    }
+    return covered;
+  }
+
+  private static String recognizedText(JSONArray segments) throws Exception {
+    StringBuilder text = new StringBuilder();
+    for (int i = 0; i < segments.length(); i++)
+      text.append(segments.getJSONObject(i).getString("text")).append(' ');
+    return text.toString();
+  }
+
+  private List<Store.Chunk> sequence(Store.Chunk first) {
+    List<Store.Chunk> all = store.chunks(first.lecture()), sources = new ArrayList<>();
+    int index = 0;
+    while (index < all.size() && all.get(index).id() != first.id()) index++;
+    if (index > 0 && first.processed() < 2000 && !first.imported()) {
+      Store.Chunk previous = all.get(index - 1);
+      if (!previous.imported()
+          && previous.state().equals("done")
+          && new File(previous.path()).isFile()
+          && previous.start() + previous.duration() == first.start()) sources.add(previous);
+    }
+    sources.add(first);
+    if (!first.imported())
+      for (int i = index + 1; i < all.size(); i++) {
+        Store.Chunk next = all.get(i), prior = sources.get(sources.size() - 1);
+        if (next.imported()
+            || !next.state().equals("ready")
+            || next.processed() != 0
+            || prior.start() + prior.duration() != next.start()) break;
+        sources.add(next);
+      }
+    return sources;
+  }
+
   private void processQueue() {
-    PowerManager power = (PowerManager) getSystemService(POWER_SERVICE);
+    PowerManager power = getSystemService(PowerManager.class);
     PowerManager.WakeLock wake =
         power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "scribe:transcription");
     Whisper model = null;
+    String retryLecture = "";
+    int windowsSinceRetry = 6;
+    long primaryBudget = 0, retrySpent = 0;
     try {
       wake.acquire(6 * 60 * 60 * 1000L);
       Store.Chunk chunk;
       while (!cancelled && (chunk = store.next()) != null) {
         activeLecture = chunk.lecture();
-        store.chunkState(chunk.id(), "processing");
         store.status(chunk.lecture(), "processing", "");
-        final Store.Chunk current = chunk;
+        List<Store.Chunk> sources = sequence(chunk);
+        Store.Lecture lecture = store.lecture(chunk.lecture());
+        if (!retryLecture.equals(lecture.id())) {
+          retryLecture = lecture.id();
+          windowsSinceRetry = 6;
+          primaryBudget = 0;
+          retrySpent = 0;
+        }
+        for (Store.Chunk source : sources)
+          if (!source.state().equals("done")) store.chunkState(source.id(), "processing");
+        final long[] checkpoint = {chunk.start() + chunk.processed()};
+        final int[] retryDistance = {windowsSinceRetry};
+        final long[] budgets = {primaryBudget, retrySpent};
         try {
           Diagnostics.record(
               this,
-              chunk.lecture(),
+              lecture.id(),
               "chunk_started",
               -1,
               -1,
@@ -244,143 +303,273 @@ public final class EngineService extends Service {
               chunk.number(),
               "resume_from_ms",
               chunk.processed(),
+              "source_count",
+              sources.size(),
               "build",
               Diagnostics.build(this),
               "recognition",
               Diagnostics.recognition());
-          if (chunk.imported() && chunk.duration() == 0) {
-            store.ready(chunk.id(), AudioDecoder.duration(this, chunk.path()));
-            store.chunkState(chunk.id(), "processing");
-          }
           if (model == null) {
-            long loadStarted = SystemClock.elapsedRealtime();
+            long before = SystemClock.elapsedRealtime();
             model = new Whisper(this);
             Diagnostics.record(
                 this,
-                chunk.lecture(),
+                lecture.id(),
                 "model_loaded",
                 -1,
                 -1,
                 "elapsed_ms",
-                SystemClock.elapsedRealtime() - loadStarted,
+                SystemClock.elapsedRealtime() - before,
                 "build",
                 Diagnostics.build(this),
                 "recognition",
                 Diagnostics.recognition());
           }
           final Whisper loaded = model;
-          Store.Lecture lecture = store.lecture(chunk.lecture());
-          final long[] checkpoint = {chunk.processed()};
-          List<Store.Segment> prior = store.segments(chunk.lecture());
-          final String[] previous = {prior.isEmpty() ? "" : prior.get(prior.size() - 1).text()};
+          String known = store.detectedLanguage(lecture.id());
+          final String[] language = {
+            lecture.language().equals("auto") && !known.isEmpty() ? known : lecture.language()
+          };
+          List<Store.Segment> prior = store.segments(lecture.id());
+          String previousText = "";
+          for (Store.Segment segment : prior)
+            if (segment.end() <= checkpoint[0]) previousText = segment.text();
+          final String[] previous = {previousText};
           final long[] decodeStarted = {SystemClock.elapsedRealtime()};
           long end =
-              AudioDecoder.decode(
+              LectureDecoder.decode(
                   this,
-                  chunk.path(),
-                  chunk.processed(),
+                  sources,
+                  checkpoint[0],
                   () -> cancelled,
                   (start, samples) -> {
-                    long windowStarted = SystemClock.elapsedRealtime();
-                    long decodeMs = windowStarted - decodeStarted[0];
+                    long began = SystemClock.elapsedRealtime(), decodeMs = began - decodeStarted[0];
                     long endMs = start + samples.length * 1000L / Core.SAMPLE_RATE;
                     if (endMs <= checkpoint[0]) return;
                     if (StorageGuard.available(this) < Core.RESERVE_BYTES / 2)
                       throw new IOException("storage_low");
                     if (power.getCurrentThermalStatus() >= PowerManager.THERMAL_STATUS_SEVERE)
                       throw new IOException("thermal");
-                    List<Store.Piece> pieces = new ArrayList<>();
+                    windowStartMs = start;
+                    windowEndMs = endMs;
+                    windowBeganMs = began;
+                    checkingSpeech = false;
                     double energy = 0;
-                    for (float s : samples) energy += s * s;
-                    int returnedSegments = 0;
-                    long recognitionMs = 0;
-                    if (Math.sqrt(energy / samples.length) >= 0.0015) {
-                      String prompt = previous[0];
-                      if (prompt.length() > 500) prompt = prompt.substring(prompt.length() - 500);
-                      long recognitionStarted = SystemClock.elapsedRealtime();
-                      JSONArray result = loaded.transcribe(samples, lecture.language(), prompt);
-                      recognitionMs = SystemClock.elapsedRealtime() - recognitionStarted;
-                      returnedSegments = result.length();
-                      for (int i = 0; i < result.length(); i++) {
-                        JSONObject s = result.getJSONObject(i);
-                        long a = start + s.getLong("start"),
-                            b = Math.min(endMs, start + s.getLong("end"));
-                        if (b <= checkpoint[0]) continue;
-                        String text = Core.trimOverlap(previous[0], s.getString("text"));
-                        if (!Core.hasWords(text)
-                            || text.matches("(?i)\\[.*(?:blank|silence|music).*\\]")) continue;
-                        a = Math.max(a, checkpoint[0]);
-                        if (b <= a) b = a + 1;
-                        pieces.add(new Store.Piece(current.start() + a, current.start() + b, text));
-                        previous[0] = text;
+                    for (float sample : samples) energy += sample * sample;
+                    double rms = Math.sqrt(energy / samples.length);
+                    JSONArray result = new JSONArray();
+                    double confidence = 0;
+                    String requestedLanguage = language[0], actualLanguage = language[0];
+                    Object detectionProbability = JSONObject.NULL;
+                    long recognitionMs = 0, retryMs = 0;
+                    boolean review = false, retried = false, retryFailed = false;
+                    if (rms >= 0.0015) {
+                      long before = SystemClock.elapsedRealtime();
+                      Whisper.Recognition first = loaded.recognize(samples, language[0], false);
+                      if (requestedLanguage.equals("auto"))
+                        detectionProbability = first.languageProbability();
+                      recognitionMs = SystemClock.elapsedRealtime() - before;
+                      budgets[0] += recognitionMs;
+                      Whisper.Recognition selected = first;
+                      String text = recognizedText(first.segments());
+                      long coverage = covered(first.segments()), duration = endMs - start;
+                      boolean suspicious =
+                          SpeechQuality.suspicious(
+                              text, first.averageLogProbability(), coverage, duration, rms);
+                      if (language[0].equals("auto")
+                          && samples.length >= Core.SAMPLE_RATE * 8
+                          && first.languageProbability() >= 0.5
+                          && Core.hasWords(text)
+                          && !SpeechQuality.repetitive(text)) {
+                        language[0] = first.language();
+                        store.recognitionState(lecture.id(), language[0], false);
                       }
+                      // At most one extra pass per six windows, with a cumulative time budget.
+                      if (suspicious
+                          && duration >= 8000
+                          && retryDistance[0] >= 6
+                          && budgets[1] <= Math.max(15000, budgets[0] / 5)
+                          && !cancelled) {
+                        checkingSpeech = true;
+                        retried = true;
+                        retryDistance[0] = 0;
+                        before = SystemClock.elapsedRealtime();
+                        Whisper.Recognition retry = null;
+                        try {
+                          retry = loaded.recognize(samples, first.language(), true);
+                        } catch (Exception retryError) {
+                          if (cancelled || "cancelled".equals(retryError.getMessage()))
+                            throw retryError;
+                          retryFailed = true;
+                          Diagnostics.record(
+                              this,
+                              lecture.id(),
+                              "retry_failed",
+                              start,
+                              endMs,
+                              "exception",
+                              Diagnostics.failure(retryError));
+                        }
+                        retryMs = SystemClock.elapsedRealtime() - before;
+                        budgets[1] += retryMs;
+                        if (retry != null
+                            && SpeechQuality.score(
+                                    recognizedText(retry.segments()),
+                                    retry.averageLogProbability(),
+                                    covered(retry.segments()),
+                                    duration)
+                                > SpeechQuality.score(
+                                    text, first.averageLogProbability(), coverage, duration))
+                          selected = retry;
+                      }
+                      retryDistance[0]++;
+                      result = selected.segments();
+                      actualLanguage = selected.language();
+                      confidence = selected.averageLogProbability();
+                      review =
+                          retryFailed
+                              || SpeechQuality.suspicious(
+                                  recognizedText(result),
+                                  confidence,
+                                  covered(result),
+                                  duration,
+                                  rms);
+                      recognitionMs += retryMs;
                     }
                     if (cancelled) throw new IOException("cancelled");
-                    store.saveWindow(current, endMs, pieces);
+                    List<Store.Piece> pieces = new ArrayList<>();
+                    for (int i = 0; i < result.length(); i++) {
+                      JSONObject segment = result.getJSONObject(i);
+                      long a = Math.max(start + segment.getLong("start"), checkpoint[0]);
+                      long b = Math.min(endMs, start + segment.getLong("end"));
+                      if (b <= checkpoint[0]) continue;
+                      String text = segment.getString("text").trim();
+                      // Only the overlapping beginning can duplicate the preceding passage.
+                      if (start + segment.getLong("start") < checkpoint[0])
+                        text = Core.trimOverlap(previous[0], text);
+                      if (!Core.hasWords(text)
+                          || text.matches("(?i)\\[.*(?:blank|silence|music).*\\]")) continue;
+                      if (b <= a) {
+                        review = true;
+                        continue;
+                      }
+                      pieces.add(new Store.Piece(a, b, text));
+                      previous[0] = text;
+                    }
+                    if (review) store.recognitionState(lecture.id(), "", true);
+                    synchronized (completionLock) {
+                      if (cancelled) throw new IOException("cancelled");
+                      store.saveSequenceWindow(sources, endMs, pieces);
+                    }
                     checkpoint[0] = endMs;
                     Diagnostics.record(
                         this,
-                        current.lecture(),
+                        lecture.id(),
                         "window_processed",
-                        current.start() + start,
-                        current.start() + endMs,
+                        start,
+                        endMs,
                         "audio_ms",
                         samples.length * 1000L / Core.SAMPLE_RATE,
                         "decode_elapsed_ms",
                         decodeMs,
                         "recognition_elapsed_ms",
                         recognitionMs,
+                        "retry_elapsed_ms",
+                        retryMs,
                         "recognition_and_commit_elapsed_ms",
-                        SystemClock.elapsedRealtime() - windowStarted,
+                        SystemClock.elapsedRealtime() - began,
                         "rms",
-                        Math.sqrt(energy / samples.length),
+                        rms,
                         "returned_segments",
-                        returnedSegments,
+                        result.length(),
                         "accepted_segments",
                         pieces.size(),
                         "language",
-                        lecture.language());
+                        actualLanguage,
+                        "language_requested",
+                        requestedLanguage,
+                        "language_detection_probability",
+                        detectionProbability,
+                        "average_log_probability",
+                        confidence,
+                        "beam_retry",
+                        retried,
+                        "review_required",
+                        review);
+                    windowBeganMs = 0;
+                    checkingSpeech = false;
                     decodeStarted[0] = SystemClock.elapsedRealtime();
                   });
-          if (cancelled) throw new IOException("cancelled");
-          if (chunk.imported()) store.ready(chunk.id(), end);
-          if (store.segmentCount(chunk.id()) == 0) {
-            store.chunkState(chunk.id(), "error");
-            store.status(chunk.lecture(), "error", "no_words");
-          } else {
-            synchronized (completionLock) {
-              if (cancelled) throw new IOException("cancelled");
-              store.chunkState(chunk.id(), "done");
-              deleteIfEligible(chunk, lecture);
+          for (Store.Chunk source : store.chunks(lecture.id())) {
+            if (sources.stream().noneMatch(s -> s.id() == source.id())
+                || source.state().equals("done")) continue;
+            if (source.start() + source.duration() <= end
+                && source.processed() >= source.duration()) {
+              boolean words = store.overlappingSegments(source) > 0;
+              store.chunkState(source.id(), words ? "done" : "error");
+              if (!words) store.status(lecture.id(), "error", "no_words");
             }
           }
-          store.settle(chunk.lecture());
-        } catch (Exception e) {
+          store.settle(lecture.id());
+          synchronized (completionLock) {
+            Store.Lecture completed = store.lecture(lecture.id());
+            if (!cancelled && completed.status().equals("done") && !store.needsReview(lecture.id()))
+              for (Store.Chunk source : store.chunks(lecture.id())) {
+                try {
+                  deleteIfEligible(source, completed);
+                } catch (IOException error) {
+                  store.recognitionState(lecture.id(), "", true);
+                  Diagnostics.record(
+                      this,
+                      lecture.id(),
+                      "audio_retention_failed",
+                      -1,
+                      -1,
+                      "exception",
+                      Diagnostics.failure(error));
+                  break;
+                }
+              }
+          }
+        } catch (Exception error) {
+          boolean stopped = cancelled || "cancelled".equals(error.getMessage());
           Diagnostics.record(
               this,
-              chunk.lecture(),
+              lecture.id(),
               "processing_failed",
               -1,
               -1,
               "error",
-              cancelled ? "cancelled" : code(e),
+              stopped ? "cancelled" : code(error),
               "exception_type",
-              e.getClass().getSimpleName(),
+              error.getClass().getSimpleName(),
               "exception",
-              Diagnostics.failure(e));
-          store.chunkState(chunk.id(), cancelled ? "ready" : "error");
-          store.status(
-              chunk.lecture(), cancelled ? "cancelled" : "error", cancelled ? "" : code(e));
-          if ("storage_low".equals(e.getMessage()) || "thermal".equals(e.getMessage())) break;
+              Diagnostics.failure(error));
+          long bad =
+              error instanceof LectureDecoder.SourceFailure failed ? failed.chunk : chunk.id();
+          for (Store.Chunk source : sources)
+            if (!source.state().equals("done"))
+              store.chunkState(source.id(), stopped || source.id() != bad ? "ready" : "error");
+          store.status(lecture.id(), stopped ? "cancelled" : "error", stopped ? "" : code(error));
+          if (List.of("storage_low", "thermal")
+              .contains(error.getMessage() == null ? "" : error.getMessage())) break;
+        } finally {
+          windowBeganMs = 0;
+          checkingSpeech = false;
+          windowsSinceRetry = retryDistance[0];
+          primaryBudget = budgets[0];
+          retrySpent = budgets[1];
         }
       }
-    } catch (Exception e) {
-      if (activeLecture != null) store.status(activeLecture, "error", code(e));
+    } catch (Exception error) {
+      if (activeLecture != null) store.status(activeLecture, "error", code(error));
     } finally {
       if (model != null) model.close();
       if (wake.isHeld()) wake.release();
       processing = false;
       activeLecture = null;
+      windowBeganMs = 0;
+      checkingSpeech = false;
       main.post(
           () -> {
             if (!processing && capture == null) {

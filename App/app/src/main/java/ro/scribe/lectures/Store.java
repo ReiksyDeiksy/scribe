@@ -69,7 +69,7 @@ public final class Store extends SQLiteOpenHelper {
     super(
         context,
         databaseName,
-        2,
+        3,
         new SQLiteDatabase.OpenParams.Builder()
             .addOpenFlags(SQLiteDatabase.CREATE_IF_NECESSARY)
             .setJournalMode(SQLiteDatabase.JOURNAL_MODE_WAL)
@@ -117,15 +117,112 @@ public final class Store extends SQLiteOpenHelper {
         "CREATE TRIGGER segment_update AFTER UPDATE OF text ON segments BEGIN UPDATE"
             + " transcript_search SET text=new.text WHERE docid=old.id; END");
     createDiagnostics(db);
+    createRecognitionState(db);
   }
 
   @Override
   public void onUpgrade(SQLiteDatabase db, int old, int next) {
-    if (old == 1 && next == 2) {
+    if (old >= 1 && old < next && next == 3) {
       // Existing text may already have been edited. Do not claim it is the original ASR output.
-      db.execSQL("ALTER TABLE segments ADD COLUMN original_text TEXT");
-      createDiagnostics(db);
+      if (old == 1) {
+        db.execSQL("ALTER TABLE segments ADD COLUMN original_text TEXT");
+        createDiagnostics(db);
+      }
+      createRecognitionState(db);
+      // Preserve remaining audio on old jobs whose previous decoder did not check quality.
+      db.execSQL("UPDATE lectures SET delete_audio=0");
     } else throw new IllegalStateException("A non-destructive database migration is required");
+  }
+
+  private static void createRecognitionState(SQLiteDatabase db) {
+    db.execSQL(
+        "CREATE TABLE recognition_state(lecture TEXT PRIMARY KEY REFERENCES lectures(id) ON DELETE"
+            + " CASCADE, detected_language TEXT NOT NULL DEFAULT '', review INTEGER NOT NULL"
+            + " DEFAULT 0)");
+  }
+
+  public synchronized String detectedLanguage(String lecture) {
+    try (Cursor c =
+        getReadableDatabase()
+            .rawQuery(
+                "SELECT detected_language FROM recognition_state WHERE lecture=?",
+                new String[] {lecture})) {
+      return c.moveToFirst() ? c.getString(0) : "";
+    }
+  }
+
+  public synchronized boolean needsReview(String lecture) {
+    try (Cursor c =
+        getReadableDatabase()
+            .rawQuery(
+                "SELECT review FROM recognition_state WHERE lecture=?", new String[] {lecture})) {
+      return c.moveToFirst() && c.getInt(0) != 0;
+    }
+  }
+
+  public synchronized void recognitionState(String lecture, String language, boolean review) {
+    SQLiteDatabase db = getWritableDatabase();
+    db.execSQL(
+        "INSERT OR IGNORE INTO recognition_state(lecture) VALUES(?)", new Object[] {lecture});
+    db.execSQL(
+        "UPDATE recognition_state SET detected_language=CASE WHEN ?='' THEN detected_language ELSE"
+            + " ? END, review=MAX(review,?) WHERE lecture=?",
+        new Object[] {language, language, review ? 1 : 0, lecture});
+  }
+
+  public synchronized void sourceDuration(long id, long duration) {
+    SQLiteDatabase db = getWritableDatabase();
+    db.execSQL("UPDATE chunks SET duration=? WHERE id=?", new Object[] {duration, id});
+    db.execSQL(
+        "UPDATE lectures SET duration=(SELECT COALESCE(MAX(start+duration),0) FROM chunks WHERE"
+            + " lecture=lectures.id) WHERE id=(SELECT lecture FROM chunks WHERE id=?)",
+        new Object[] {id});
+  }
+
+  /** Text and every source checkpoint touched by one recognition window commit together. */
+  public synchronized void saveSequenceWindow(List<Chunk> sources, long end, List<Piece> pieces) {
+    SQLiteDatabase db = getWritableDatabase();
+    db.beginTransaction();
+    try {
+      for (Piece piece : pieces) {
+        Chunk owner = sources.get(0);
+        for (Chunk source : sources) if (source.start() <= piece.start()) owner = source;
+        ContentValues v = new ContentValues();
+        v.put("chunk", owner.id());
+        v.put("start", piece.start());
+        v.put("end", piece.end());
+        v.put("text", piece.text());
+        v.put("original_text", piece.text());
+        db.insertWithOnConflict("segments", null, v, SQLiteDatabase.CONFLICT_IGNORE);
+      }
+      for (Chunk source : sources) {
+        if (source.start() >= end || source.state().equals("done")) continue;
+        long progress = end - source.start();
+        if (source.duration() > 0) progress = Math.min(progress, source.duration());
+        db.execSQL(
+            "UPDATE chunks SET processed=MAX(processed,?) WHERE id=?",
+            new Object[] {progress, source.id()});
+      }
+      db.setTransactionSuccessful();
+    } finally {
+      db.endTransaction();
+    }
+  }
+
+  public synchronized int overlappingSegments(Chunk chunk) {
+    try (Cursor c =
+        getReadableDatabase()
+            .rawQuery(
+                "SELECT COUNT(*) FROM segments s JOIN chunks k ON k.id=s.chunk WHERE k.lecture=?"
+                    + " AND s.start<? AND s.end>?",
+                new String[] {
+                  chunk.lecture(),
+                  Long.toString(chunk.start() + chunk.duration()),
+                  Long.toString(chunk.start())
+                })) {
+      c.moveToFirst();
+      return c.getInt(0);
+    }
   }
 
   private static void createDiagnostics(SQLiteDatabase db) {
@@ -474,7 +571,10 @@ public final class Store extends SQLiteOpenHelper {
   public synchronized void retry(String lecture) {
     getWritableDatabase()
         .execSQL(
-            "UPDATE chunks SET state='ready' WHERE lecture=? AND state IN ('error','processing')",
+            "UPDATE chunks SET processed=CASE WHEN state='error' AND processed>=duration"
+                + " AND NOT EXISTS(SELECT 1 FROM segments WHERE chunk=chunks.id) THEN 0"
+                + " ELSE processed END, state='ready' WHERE lecture=? AND state IN"
+                + " ('error','processing')",
             new Object[] {lecture});
     status(lecture, "queued", "");
   }

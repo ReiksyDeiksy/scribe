@@ -7,10 +7,21 @@ import java.util.List;
 final class PatchNotes {
   static final String SEEN_VERSION = "patch_notes_seen_version";
 
-  record Release(int code, String version, LocalDate date, int summary, int body) {}
+  record Release(int code, String version, LocalDate date, int summary, int body, int signoff) {
+    Release(int code, String version, LocalDate date, int summary, int body) {
+      this(code, version, date, summary, body, R.string.personal_signoff);
+    }
+  }
 
   static final List<Release> HISTORY =
       List.of(
+          new Release(
+              6,
+              "0.1.5-test",
+              LocalDate.of(2026, 11, 2),
+              R.string.patch_6_summary,
+              R.string.patch_6_body,
+              R.string.patch_6_signoff),
           new Release(
               5,
               "0.1.4-test",

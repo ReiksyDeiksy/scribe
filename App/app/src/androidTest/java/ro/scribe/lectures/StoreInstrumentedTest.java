@@ -76,4 +76,53 @@ public class StoreInstrumentedTest {
     assertTrue(store.chunks(lecture).isEmpty());
     assertTrue(store.lectures(0, "first").isEmpty());
   }
+
+  @Test
+  public void versionTwoUpgradeKeepsEditsSearchMarksAndDisablesLegacyDeletion() {
+    String lecture = store.createLecture(0, "auto", true, "done");
+    long chunk = store.addChunk(lecture, 0, "/retained/lecture.m4a", 0, false);
+    store.ready(chunk, 60000);
+    store.saveWindow(
+        store.chunks(lecture).get(0),
+        30000,
+        List.of(new Store.Piece(0, 20000, "Original recognised words")));
+    long segment = store.segments(lecture).get(0).id();
+    store.edit(segment, "My preserved correction");
+    store.mark(lecture, 12000);
+    store.getWritableDatabase().execSQL("DROP TABLE recognition_state");
+    store.getWritableDatabase().setVersion(2);
+    store.close();
+    store = new Store(context, name);
+    assertEquals(3, store.getReadableDatabase().getVersion());
+    assertEquals("My preserved correction", store.segments(lecture).get(0).text());
+    assertTrue(store.segments(lecture).get(0).starred());
+    assertEquals(1, store.lectures(0, "preserved").size());
+    assertFalse(store.lecture(lecture).deleteAudio());
+    assertEquals(30000, store.chunks(lecture).get(0).processed());
+    assertEquals("", store.detectedLanguage(lecture));
+    store.recognitionState(lecture, "ro", true);
+    store.recognitionState(lecture, "", false);
+    assertEquals("ro", store.detectedLanguage(lecture));
+    assertTrue(store.needsReview(lecture));
+  }
+
+  @Test
+  public void retryReplaysEmptyCompletedSectionsButKeepsValidPartialCheckpoints() {
+    String lecture = store.createLecture(0, "ro", false, "error");
+    long first = store.addChunk(lecture, 0, "/retained/first.wav", 0, false);
+    store.ready(first, 60000);
+    store.saveWindow(store.chunks(lecture).get(0), 60000, List.of());
+    store.chunkState(first, "error");
+    long second = store.addChunk(lecture, 1, "/retained/second.wav", 60000, false);
+    store.ready(second, 60000);
+    store.saveWindow(
+        store.chunks(lecture).get(1),
+        30000,
+        List.of(new Store.Piece(60000, 70000, "Keep this text")));
+    store.chunkState(second, "processing");
+    store.retry(lecture);
+    assertEquals(0, store.chunks(lecture).get(0).processed());
+    assertEquals(30000, store.chunks(lecture).get(1).processed());
+    assertEquals("Keep this text", store.segments(lecture).get(0).text());
+  }
 }

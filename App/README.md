@@ -13,6 +13,13 @@ transcripts, settings or Python environment.
 - English and Romanian UI, selectable in Settings. Other device languages fall
   back to English. Lecture language is a separate setting; automatic detection
   is the default.
+- The lecture-language shortcut at the top of Library exposes the same choices
+  before recording/importing. Auto pins a detected language when a window at
+  least eight seconds long returns non-repetitive text with sufficient confidence;
+  the saved choice survives pause/restart. Existing finished text is unchanged.
+- Lecture detail shows committed audio progress as a percentage and a separate
+  animated working indicator with the current section and elapsed work time.
+  Low-confidence/repetitive/poor-coverage results are marked for checking.
 - Settings > Help / Setări > Ajutor explains recording, transcription, organising,
   playback, corrections, import/export, audio deletion and APK updates in short,
   personal notes for Mara. The guide is included in both languages and themes.
@@ -22,8 +29,8 @@ transcripts, settings or Python environment.
   latest note once on an idle app opening after an update (or first installation).
   It includes instructions for new features. Opening old
   notes does not reset the latest-version marker; open windows survive recreation.
-  Every note and the Help closing message ends with the shared personal sign-off
-  `Love ya, Mara <3`, unchanged in both languages.
+  Each update keeps its requested closing in both languages. The current note
+  uses `I love youuuu` followed by `Danny~`; earlier notes keep their old closing.
 - Start recording immediately, with no course required. Open a lecture to assign
   an existing course or create one afterwards. Courses can be renamed.
 - Automatic localised course/date/time titles; optional custom titles.
@@ -43,7 +50,15 @@ transcripts, settings or Python environment.
   AAC, FLAC and OGG depend on available Android decoders. The original remains
   untouched; a persisted read grant is used instead of copying a large file.
 - Import and recording processing use bounded 30-second mono PCM windows with
-  two seconds of overlap. Long imports seek near the saved checkpoint on retry.
+  two seconds of overlap. Contiguous recording files feed one recognition stream,
+  avoiding a separate recognition call for every file's short tail. Long sources
+  seek near the saved checkpoint on retry. Window text and every affected source
+  checkpoint commit atomically; corrections remain intact.
+- Recognized text is never supplied as the next window's initial prompt. The
+  existing multilingual base Q5 model and three-thread CPU cap are retained.
+  Suspicious windows may receive one beam-5 retry, no more often than once per
+  six windows and subject to a cumulative retry-time gate. Failed optional retries
+  preserve the first result and mark it for review; cancellation still stops work.
 - Segment timestamps, text corrections, copy/share and UTF-8 TXT export through
   Android's file picker. Tap a passage to listen; hold it to edit. Playback
   continues to the next retained recording chunk.
@@ -55,8 +70,9 @@ transcripts, settings or Python environment.
   full-lecture audio retains its original encoding. Reports are capped at 256 MiB.
 - New recordings/processing collect bounded, content-free timing/error records
   and sampled device conditions. Original recognised passage text is preserved
-  separately from corrections. The schema-v2 migration retains existing data;
-  legacy originals and historical timings are explicitly unavailable.
+  separately from corrections. Upgrades from database versions 1/2 to version 3
+  retain existing data; legacy originals and historical timings are explicitly
+  unavailable. Version 3 persists detected language and quality-review state.
 - SQLite WAL with FULL synchronous writes. Window text and its checkpoint are
   committed together. Retrying an already committed window preserves edits.
 - Crash recovery resets incomplete processing to ready; interrupted captures
@@ -70,9 +86,14 @@ transcripts, settings or Python environment.
 Audio retention is ON by default. The optional deletion setting is snapshotted
 for **new recordings**. It never deletes imported originals. A recorded chunk
 can be removed only after non-empty transcript results have been committed
-successfully. Failed, cancelled or unexpectedly empty sections stay available.
-Completion and cancellation are serialised around deletion. Earlier successful
-sections may already have been removed when a later section fails.
+successfully. Since version 0.1.5-test, deletion also requires the entire lecture
+to finish without processing errors or quality-review warnings. Failed,
+cancelled, empty or flagged results keep their audio. Checks cannot detect every
+word error; leave automatic deletion off when recordings need review.
+Completion and cancellation are serialised around deletion. The schema-v3 update
+disables automatic deletion for existing lectures to preserve their remaining
+audio; it does not restore previously deleted files or change the saved default
+for new lectures.
 
 Deleting audio also removes the ability to replay that section; text and
 timestamps remain. Silence-only sections are conservatively retained and marked
