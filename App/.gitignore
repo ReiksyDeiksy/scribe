@@ -9,3 +9,4 @@ artifacts/
 *.log
 **/__pycache__/
 app/src/main/assets/models/*.bin
+app/src/main/assets/models/parakeet-v3-int8/

@@ -93,7 +93,7 @@ public class StoreInstrumentedTest {
     store.getWritableDatabase().setVersion(2);
     store.close();
     store = new Store(context, name);
-    assertEquals(3, store.getReadableDatabase().getVersion());
+    assertEquals(4, store.getReadableDatabase().getVersion());
     assertEquals("My preserved correction", store.segments(lecture).get(0).text());
     assertTrue(store.segments(lecture).get(0).starred());
     assertEquals(1, store.lectures(0, "preserved").size());
@@ -104,6 +104,33 @@ public class StoreInstrumentedTest {
     store.recognitionState(lecture, "", false);
     assertEquals("ro", store.detectedLanguage(lecture));
     assertTrue(store.needsReview(lecture));
+  }
+
+  @Test
+  public void versionThreeUpgradePreservesExistingEngineLanguageAndReview() {
+    String lecture = store.createLecture(0, "auto", false, "cancelled");
+    store.recognitionState(lecture, "ro", true);
+    var db = store.getWritableDatabase();
+    db.execSQL("ALTER TABLE recognition_state RENAME TO state_v4");
+    db.execSQL(
+        "CREATE TABLE recognition_state(lecture TEXT PRIMARY KEY REFERENCES lectures(id) ON DELETE"
+            + " CASCADE, detected_language TEXT NOT NULL DEFAULT '', review INTEGER NOT NULL"
+            + " DEFAULT 0)");
+    db.execSQL(
+        "INSERT INTO recognition_state SELECT lecture,detected_language,review FROM state_v4");
+    db.execSQL("DROP TABLE state_v4");
+    db.setVersion(3);
+    store.close();
+    store = new Store(context, name);
+    assertEquals(4, store.getReadableDatabase().getVersion());
+    assertEquals("whisper", store.recognitionEngine(lecture));
+    assertEquals("ro", store.detectedLanguage(lecture));
+    assertTrue(store.needsReview(lecture));
+    String fresh = store.createLecture(0, "ro", true, "queued", LectureModel.ENGINE);
+    assertEquals(LectureModel.ENGINE, store.recognitionEngine(fresh));
+    assertEquals("auto", store.lecture(fresh).language());
+    assertFalse(store.lecture(fresh).deleteAudio());
+    assertTrue(store.needsReview(fresh));
   }
 
   @Test

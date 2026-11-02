@@ -13,13 +13,20 @@ transcripts, settings or Python environment.
 - English and Romanian UI, selectable in Settings. Other device languages fall
   back to English. Lecture language is a separate setting; automatic detection
   is the default.
-- The lecture-language shortcut at the top of Library exposes the same choices
+- Library/Settings selects **Lecture** (the default) or **Compatibility** for new
+  recordings/imports. Lecture uses the bundled Parakeet TDT v3 INT8 model and
+  automatically recognises 25 European languages including Romanian and English.
+  Compatibility keeps the prior Whisper model and fixed-language selector.
+  Existing lectures keep their saved engine. More → Transcribe again creates a
+  separate transcript from all retained audio, keeping original edits and marks.
+- In Compatibility, the lecture-language shortcut at the top of Library exposes the same choices
   before recording/importing. Auto pins a detected language when a window at
   least eight seconds long returns non-repetitive text with sufficient confidence;
   the saved choice survives pause/restart. Existing finished text is unchanged.
 - Lecture detail shows committed audio progress as a percentage and a separate
   animated working indicator with the current section and elapsed work time.
-  Low-confidence/repetitive/poor-coverage results are marked for checking.
+  Lecture mode always retains audio and underlines numeric text for checking.
+  Confidence checks cannot establish the correctness of medical terms/numbers.
 - Settings > Help / Setări > Ajutor explains recording, transcription, organising,
   playback, corrections, import/export, audio deletion and APK updates in short,
   personal notes for Mara. The guide is included in both languages and themes.
@@ -30,7 +37,7 @@ transcripts, settings or Python environment.
   It includes instructions for new features. Opening old
   notes does not reset the latest-version marker; open windows survive recreation.
   Each update keeps its requested closing in both languages. The current note
-  uses `I love youuuu` followed by `Danny~`; earlier notes keep their old closing.
+  uses `With love` followed by `Your Danny~`; earlier notes keep their old closing.
 - Start recording immediately, with no course required. Open a lecture to assign
   an existing course or create one afterwards. Courses can be renamed.
 - Automatic localised course/date/time titles; optional custom titles.
@@ -44,19 +51,24 @@ transcripts, settings or Python environment.
   chunk boundaries. Finalised files are synced before queueing.
 - Recording takes priority: this first build transcribes **after recording
   stops**, using one worker, with a cached model across queued sections.
-- The multilingual `base-q5_1` speech model is included (59,707,625 bytes).
+- The Lecture INT8 model is included (670,478,772 bytes total), alongside the
+  Compatibility `base-q5_1` model (59,707,625 bytes). The larger APK/extracted
+  models need more storage. Lecture mode uses about 1 GB of working memory and
+  checks free memory before loading. See `TRANSCRIPTION.md` for the model/runtime
+  revisions, licensing, cancellation and recovery behavior.
   The app has **no INTERNET permission** and requires no account or training.
 - Streaming audio import through Android's document picker. WAV, MP3, M4A,
   AAC, FLAC and OGG depend on available Android decoders. The original remains
   untouched; a persisted read grant is used instead of copying a large file.
 - Import and recording processing use bounded 30-second mono PCM windows with
-  two seconds of overlap. Contiguous recording files feed one recognition stream,
+  two seconds of overlap. Lecture mode merges a short final tail using at most
+  38 seconds of buffered PCM. Contiguous recording files feed one recognition stream,
   avoiding a separate recognition call for every file's short tail. Long sources
   seek near the saved checkpoint on retry. Window text and every affected source
   checkpoint commit atomically; corrections remain intact.
 - Recognized text is never supplied as the next window's initial prompt. The
-  existing multilingual base Q5 model and three-thread CPU cap are retained.
-  Suspicious windows may receive one beam-5 retry, no more often than once per
+  CPU setting remains three threads (per runtime session in Lecture mode).
+  Compatibility windows may receive one beam-5 retry, no more often than once per
   six windows and subject to a cumulative retry-time gate. Failed optional retries
   preserve the first result and mark it for review; cancellation still stops work.
 - Segment timestamps, text corrections, copy/share and UTF-8 TXT export through
@@ -73,6 +85,7 @@ transcripts, settings or Python environment.
   separately from corrections. Upgrades from database versions 1/2 to version 3
   retain existing data; legacy originals and historical timings are explicitly
   unavailable. Version 3 persists detected language and quality-review state.
+  Version 4 stores the engine without changing existing jobs or checkpoints.
 - SQLite WAL with FULL synchronous writes. Window text and its checkpoint are
   committed together. Retrying an already committed window preserves edits.
 - Crash recovery resets incomplete processing to ready; interrupted captures
@@ -83,8 +96,9 @@ transcripts, settings or Python environment.
 
 ## Audio retention
 
-Audio retention is ON by default. The optional deletion setting is snapshotted
-for **new recordings**. It never deletes imported originals. A recorded chunk
+Lecture mode always retains audio. Compatibility retention is ON by default;
+its optional deletion setting is snapshotted for **new Compatibility recordings**.
+It never deletes imported originals. A recorded chunk
 can be removed only after non-empty transcript results have been committed
 successfully. Since version 0.1.5-test, deletion also requires the entire lecture
 to finish without processing errors or quality-review warnings. Failed,

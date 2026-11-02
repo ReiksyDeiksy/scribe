@@ -23,8 +23,19 @@ final class LectureDecoder {
       BooleanSupplier cancelled,
       AudioDecoder.Window consumer)
       throws Exception {
+    return decode(context, sources, checkpoint, cancelled, consumer, false);
+  }
+
+  static long decode(
+      Context context,
+      List<Store.Chunk> sources,
+      long checkpoint,
+      BooleanSupplier cancelled,
+      AudioDecoder.Window consumer,
+      boolean mergeShortTail)
+      throws Exception {
     long first = Math.max(sources.get(0).start(), checkpoint - 2000);
-    PcmWindows windows = new PcmWindows(first, consumer);
+    PcmWindows windows = new PcmWindows(first, consumer, mergeShortTail);
     long[] position = {first * 16};
     for (Store.Chunk source : sources) {
       if (source.duration() > 0 && source.start() + source.duration() <= first) continue;

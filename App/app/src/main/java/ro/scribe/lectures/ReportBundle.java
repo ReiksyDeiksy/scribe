@@ -157,7 +157,10 @@ final class ReportBundle {
               "app_at_export",
               Diagnostics.build(context),
               "recognition_defaults_at_export",
-              Diagnostics.recognition(),
+              Diagnostics.recognition(
+                  context
+                      .getSharedPreferences("settings", 0)
+                      .getString("recognition_engine", LectureModel.ENGINE)),
               "device_at_export",
               Diagnostics.sample(context),
               "lecture",
@@ -170,6 +173,8 @@ final class ReportBundle {
                   lecture.language(),
                   "detected_language",
                   store.detectedLanguage(lecture.id()),
+                  "recognition_engine",
+                  store.recognitionEngine(lecture.id()),
                   "review_required",
                   store.needsReview(lecture.id()),
                   "status",

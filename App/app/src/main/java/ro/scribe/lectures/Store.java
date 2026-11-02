@@ -69,7 +69,7 @@ public final class Store extends SQLiteOpenHelper {
     super(
         context,
         databaseName,
-        3,
+        4,
         new SQLiteDatabase.OpenParams.Builder()
             .addOpenFlags(SQLiteDatabase.CREATE_IF_NECESSARY)
             .setJournalMode(SQLiteDatabase.JOURNAL_MODE_WAL)
@@ -122,15 +122,19 @@ public final class Store extends SQLiteOpenHelper {
 
   @Override
   public void onUpgrade(SQLiteDatabase db, int old, int next) {
-    if (old >= 1 && old < next && next == 3) {
+    if (old >= 1 && old < next && next == 4) {
       // Existing text may already have been edited. Do not claim it is the original ASR output.
       if (old == 1) {
         db.execSQL("ALTER TABLE segments ADD COLUMN original_text TEXT");
         createDiagnostics(db);
       }
-      createRecognitionState(db);
-      // Preserve remaining audio on old jobs whose previous decoder did not check quality.
-      db.execSQL("UPDATE lectures SET delete_audio=0");
+      if (old < 3) {
+        createRecognitionState(db);
+        // Preserve remaining audio on jobs whose previous decoder did not check quality.
+        db.execSQL("UPDATE lectures SET delete_audio=0");
+      } else
+        db.execSQL(
+            "ALTER TABLE recognition_state ADD COLUMN engine TEXT NOT NULL DEFAULT 'whisper'");
     } else throw new IllegalStateException("A non-destructive database migration is required");
   }
 
@@ -138,7 +142,16 @@ public final class Store extends SQLiteOpenHelper {
     db.execSQL(
         "CREATE TABLE recognition_state(lecture TEXT PRIMARY KEY REFERENCES lectures(id) ON DELETE"
             + " CASCADE, detected_language TEXT NOT NULL DEFAULT '', review INTEGER NOT NULL"
-            + " DEFAULT 0)");
+            + " DEFAULT 0, engine TEXT NOT NULL DEFAULT 'whisper')");
+  }
+
+  public synchronized String recognitionEngine(String lecture) {
+    try (Cursor c =
+        getReadableDatabase()
+            .rawQuery(
+                "SELECT engine FROM recognition_state WHERE lecture=?", new String[] {lecture})) {
+      return c.moveToFirst() ? c.getString(0) : "whisper";
+    }
   }
 
   public synchronized String detectedLanguage(String lecture) {
@@ -255,15 +268,32 @@ public final class Store extends SQLiteOpenHelper {
 
   public synchronized String createLecture(
       long course, String language, boolean deleteAudio, String status) {
+    return createLecture(course, language, deleteAudio, status, "whisper");
+  }
+
+  public synchronized String createLecture(
+      long course, String language, boolean deleteAudio, String status, String engine) {
+    if (!engine.equals("whisper") && !engine.equals(LectureModel.ENGINE))
+      throw new IllegalArgumentException("Invalid engine");
     String id = UUID.randomUUID().toString();
     ContentValues v = new ContentValues();
     v.put("id", id);
     if (course > 0) v.put("course", course);
     v.put("created", System.currentTimeMillis());
     v.put("status", status);
-    v.put("language", language);
-    v.put("delete_audio", deleteAudio);
-    getWritableDatabase().insertOrThrow("lectures", null, v);
+    v.put("language", engine.equals(LectureModel.ENGINE) ? "auto" : language);
+    v.put("delete_audio", deleteAudio && !engine.equals(LectureModel.ENGINE));
+    SQLiteDatabase db = getWritableDatabase();
+    db.beginTransaction();
+    try {
+      db.insertOrThrow("lectures", null, v);
+      db.execSQL(
+          "INSERT INTO recognition_state(lecture,engine,review) VALUES(?,?,?)",
+          new Object[] {id, engine, engine.equals(LectureModel.ENGINE) ? 1 : 0});
+      db.setTransactionSuccessful();
+    } finally {
+      db.endTransaction();
+    }
     return id;
   }
 
@@ -278,6 +308,47 @@ public final class Store extends SQLiteOpenHelper {
         c.getInt(6) != 0,
         c.getLong(7),
         c.getString(8));
+  }
+
+  synchronized String commitAudioCopy(
+      Context context,
+      Lecture original,
+      List<Chunk> sources,
+      List<File> files,
+      String engine,
+      String title)
+      throws Exception {
+    SQLiteDatabase db = getWritableDatabase();
+    String id = null;
+    File directory = null;
+    boolean committed = false;
+    db.beginTransaction();
+    try {
+      if (lecture(original.id()) == null || sources.size() != files.size())
+        throw new java.io.IOException("audio_missing");
+      id = createLecture(original.course(), original.language(), false, "queued", engine);
+      directory = directory(context, id);
+      for (int i = 0; i < sources.size(); i++) {
+        Chunk source = sources.get(i);
+        File from = files.get(i);
+        File to = new File(directory, from.getName());
+        if (!from.renameTo(to)) throw new java.io.IOException("storage_low");
+        long chunk = addChunk(id, source.number(), to.getAbsolutePath(), source.start(), false);
+        ready(chunk, source.duration());
+      }
+      rename(id, title);
+      for (Mark mark : marks(original.id())) mark(id, mark.time());
+      db.setTransactionSuccessful();
+      committed = true;
+      return id;
+    } finally {
+      db.endTransaction();
+      if (!committed && directory != null) {
+        for (File file : directory.listFiles() == null ? new File[0] : directory.listFiles())
+          file.delete();
+        directory.delete();
+      }
+    }
   }
 
   public synchronized Lecture lecture(String id) {

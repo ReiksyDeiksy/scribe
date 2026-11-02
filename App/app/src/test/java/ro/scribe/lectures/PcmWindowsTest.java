@@ -8,6 +8,47 @@ import org.junit.Test;
 
 public class PcmWindowsTest {
   @Test
+  public void lectureModeMergesTinyFinalJobsWithoutLosingSamples() throws Exception {
+    List<Long> starts = new ArrayList<>();
+    long[] end = {0};
+    PcmWindows windows =
+        new PcmWindows(
+            0,
+            (start, samples) -> {
+              starts.add(start);
+              assertTrue(samples.length <= 38 * 16000);
+              for (int i = 0; i < samples.length; i++)
+                assertEquals((float) (start * 16 + i), samples[i], 0);
+              end[0] = start + samples.length / 16;
+            },
+            true);
+    int count = 114944 * 16;
+    for (int offset = 0; offset < count; offset += 16000) {
+      float[] block = new float[Math.min(16000, count - offset)];
+      for (int i = 0; i < block.length; i++) block[i] = offset + i;
+      windows.append(block, 0, block.length);
+    }
+    windows.finish();
+    assertEquals(List.of(0L, 28000L, 56000L, 84000L), starts);
+    assertEquals(114944, end[0]);
+    int[] calls = {0};
+    PcmWindows longLecture =
+        new PcmWindows(
+            0,
+            (start, samples) -> {
+              assertTrue(samples.length <= 38 * 16000);
+              end[0] = start + samples.length / 16;
+              calls[0]++;
+            },
+            true);
+    float[] second = new float[16000];
+    for (int i = 0; i < 10800; i++) longLecture.append(second, 0, second.length);
+    longLecture.finish();
+    assertEquals(10800000, end[0]);
+    assertEquals(386, calls[0]);
+  }
+
+  @Test
   public void fileBoundariesDoNotFlushAndAllNewSamplesSurvive() throws Exception {
     List<Long> starts = new ArrayList<>();
     long[] count = {0}, previousEnd = {0};

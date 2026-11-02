@@ -1,0 +1,16 @@
+<resources>
+    <string name="pausing_section">Se pune în pauză după secțiunea curentă…</string>
+    <string name="new_transcript_queued">Noua transcriere este salvată. Deschide-o și apasă Continuă transcrierea pentru a porni când aplicația este activă.</string>
+    <string name="memory_low">Modul Curs are nevoie de mai multă memorie liberă. Închide alte aplicații și reîncearcă sau folosește modul Compatibilitate pentru o transcriere nouă. Înregistrarea este păstrată.</string>
+    <string name="recognition_mode">Mod de transcriere</string>
+    <string name="recognition_mode_value">Transcriere: %1$s</string>
+    <string name="mode_lecture">Curs</string>
+    <string name="mode_compatibility">Compatibilitate</string>
+    <string name="lecture_mode_hint">Mod Curs · limbă automată · înregistrare păstrată</string>
+    <string name="lecture_mode_help">Modul Curs recunoaște automat româna, engleza și alte 23 de limbi europene. Pentru o limbă fixă sau turcă, folosește Compatibilitate. Numerele sunt subliniate pentru verificare; termenii medicali pot fi și ei greșiți. Modul Curs păstrează întotdeauna înregistrarea.</string>
+    <string name="transcribe_again">Transcrie din nou</string>
+    <string name="transcribe_again_hint">Creează o transcriere separată în modul %1$s, folosind înregistrarea păstrată. Textul, corecturile și înregistrarea originale rămân neschimbate. Trebuie să fie disponibile toate fișierele audio.</string>
+    <string name="copying_audio">Se pregătește o nouă transcriere…</string>
+    <string name="new_transcript_title">%1$s · transcriere nouă</string>
+    <string name="copy_audio_failed">Nu s-au putut copia toate fișierele audio. Verifică dacă mai sunt disponibile și dacă există suficient spațiu liber. Cursul original rămâne neschimbat.</string>
+</resources>

@@ -10,6 +10,8 @@ MODEL_REVISION = '5359861c739e955e79d9a303bcbc70fb988958b1'
 MODEL_SHA256 = '422f1ae452ade6f30a004d7e5c6a43195e4433bc370bf23fac9cc591f01a8898'
 
 def main():
+    from prepare_lecture import main as prepare_lecture
+    prepare_lecture()
     fetch(f'https://huggingface.co/ggerganov/whisper.cpp/resolve/{MODEL_REVISION}/ggml-base-q5_1.bin',
           ROOT / 'app/src/main/assets/models/ggml-base-q5_1.bin', MODEL_SHA256)
     signing = TOOLS / 'signing'

@@ -362,10 +362,19 @@ public final class MainActivity extends Activity {
     content.addView(
         button(
             getString(
-                R.string.lecture_language_value,
-                audioLanguageName(prefs.getString("audio_language", "auto"))),
+                R.string.recognition_mode_value,
+                getString(lectureMode() ? R.string.mode_lecture : R.string.mode_compatibility)),
             false,
-            this::chooseAudioLanguage));
+            this::chooseRecognitionMode));
+    if (lectureMode()) note(content, R.string.lecture_mode_hint);
+    else
+      content.addView(
+          button(
+              getString(
+                  R.string.lecture_language_value,
+                  audioLanguageName(prefs.getString("audio_language", "auto"))),
+              false,
+              this::chooseAudioLanguage));
     EditText search = new EditText(this);
     search.setSingleLine();
     search.setTextColor(inkColor);
@@ -602,7 +611,8 @@ public final class MainActivity extends Activity {
             courseFilter,
             prefs.getString("audio_language", "auto"),
             prefs.getBoolean("delete_audio", false),
-            "recording");
+            "recording",
+            recognitionEngine());
     try {
       EngineService.command(this, EngineService.RECORD, id);
       openLecture(id);
@@ -865,6 +875,7 @@ public final class MainActivity extends Activity {
                 Core.clock(EngineService.windowEndMs),
                 Core.clock(Math.max(0, android.os.SystemClock.elapsedRealtime() - began)))
             : getString(R.string.preparing_audio));
+    if (working && l.status().equals("cancelled")) workState.setText(R.string.pausing_section);
     boolean review = store.needsReview(lectureId);
     reviewNotice.setVisibility(review ? View.VISIBLE : View.GONE);
     key.append(review);
@@ -874,7 +885,10 @@ public final class MainActivity extends Activity {
             ? getString(
                 R.string.language_detected, audioLanguageName("auto"), audioLanguageName(detected))
             : audioLanguageName(l.language());
-    detailLanguage.setText(getString(R.string.lecture_language_value, shown));
+    detailLanguage.setText(
+        store.recognitionEngine(lectureId).equals(LectureModel.ENGINE)
+            ? getString(R.string.lecture_mode_hint)
+            : getString(R.string.lecture_language_value, shown));
     if (signature.equals(key.toString())) return;
     signature = key.toString();
     int first = list.getFirstVisiblePosition();
@@ -914,6 +928,24 @@ public final class MainActivity extends Activity {
             if (prefs.getBoolean("timestamps", true) || marked)
               v.addView(text((marked ? "★  " : "") + Core.clock(s.start()), 12, actionColor));
             TextView passage = text(s.text(), 18, inkColor);
+            if (store.recognitionEngine(lectureId).equals(LectureModel.ENGINE)) {
+              android.text.SpannableString numberMarks = new android.text.SpannableString(s.text());
+              java.util.regex.Matcher numbers =
+                  java.util.regex.Pattern.compile("\\p{N}+(?:[.,:/–-]\\p{N}+)*").matcher(s.text());
+              while (numbers.find()) {
+                numberMarks.setSpan(
+                    new android.text.style.StyleSpan(Typeface.BOLD),
+                    numbers.start(),
+                    numbers.end(),
+                    android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                numberMarks.setSpan(
+                    new android.text.style.UnderlineSpan(),
+                    numbers.start(),
+                    numbers.end(),
+                    android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+              }
+              passage.setText(numberMarks);
+            }
             passage.setLineSpacing(dp(3), 1.08f);
             v.addView(passage);
             return v;
@@ -984,7 +1016,8 @@ public final class MainActivity extends Activity {
       getString(R.string.rename),
       getString(R.string.share),
       getString(R.string.stop_playback),
-      getString(R.string.delete)
+      getString(R.string.delete),
+      getString(R.string.transcribe_again)
     };
     new AlertDialog.Builder(this)
         .setTitle(R.string.more)
@@ -1007,7 +1040,102 @@ public final class MainActivity extends Activity {
                     .show();
               } else if (index == 1) share();
               else if (index == 2) stopPlayback();
-              else remove();
+              else if (index == 3) remove();
+              else transcribeAgain();
+            })
+        .show();
+  }
+
+  private boolean lectureMode() {
+    return recognitionEngine().equals(LectureModel.ENGINE);
+  }
+
+  private String recognitionEngine() {
+    return prefs.getString("recognition_engine", LectureModel.ENGINE);
+  }
+
+  private void chooseRecognitionMode() {
+    new AlertDialog.Builder(this)
+        .setTitle(R.string.recognition_mode)
+        .setSingleChoiceItems(
+            new String[] {getString(R.string.mode_lecture), getString(R.string.mode_compatibility)},
+            lectureMode() ? 0 : 1,
+            (dialog, which) -> {
+              prefs
+                  .edit()
+                  .putString("recognition_engine", which == 0 ? LectureModel.ENGINE : "whisper")
+                  .apply();
+              dialog.dismiss();
+              render();
+            })
+        .setNegativeButton(R.string.cancel, null)
+        .show();
+  }
+
+  private void transcribeAgain() {
+    if (EngineService.processing || EngineService.capture != null) {
+      toast(R.string.busy);
+      return;
+    }
+    String original = lectureId;
+    String engine = recognitionEngine();
+    String copyHint =
+        getString(
+            R.string.transcribe_again_hint,
+            getString(
+                engine.equals(LectureModel.ENGINE)
+                    ? R.string.mode_lecture
+                    : R.string.mode_compatibility));
+    new AlertDialog.Builder(this)
+        .setTitle(R.string.transcribe_again)
+        .setMessage(copyHint)
+        .setNegativeButton(R.string.cancel, null)
+        .setPositiveButton(
+            R.string.transcribe_again,
+            (dialog, which) -> {
+              java.util.concurrent.atomic.AtomicBoolean cancelled =
+                  new java.util.concurrent.atomic.AtomicBoolean();
+              AlertDialog progress =
+                  new AlertDialog.Builder(this)
+                      .setTitle(R.string.copying_audio)
+                      .setMessage(copyHint)
+                      .setNegativeButton(R.string.cancel, (d, w) -> cancelled.set(true))
+                      .create();
+              progress.setOnCancelListener(d -> cancelled.set(true));
+              progress.show();
+              String name =
+                  getString(R.string.new_transcript_title, title(store.lecture(original)));
+              Context app = getApplicationContext();
+              files.execute(
+                  () -> {
+                    try {
+                      String copy =
+                          LectureCopy.create(
+                              app,
+                              original,
+                              engine,
+                              name,
+                              () -> cancelled.get() || Thread.currentThread().isInterrupted());
+                      handler.post(
+                          () -> {
+                            if (isDestroyed() || isFinishing()) return;
+                            progress.dismiss();
+                            openLecture(copy);
+                            try {
+                              EngineService.command(this, EngineService.PROCESS, copy);
+                            } catch (RuntimeException backgroundStart) {
+                              toast(R.string.new_transcript_queued);
+                            }
+                          });
+                    } catch (Exception error) {
+                      handler.post(
+                          () -> {
+                            if (isDestroyed() || isFinishing()) return;
+                            progress.dismiss();
+                            if (!cancelled.get()) toast(R.string.copy_audio_failed);
+                          });
+                    }
+                  });
             })
         .show();
   }
@@ -1103,6 +1231,14 @@ public final class MainActivity extends Activity {
 
           public void onNothingSelected(AdapterView<?> p) {}
         });
+    page.addView(
+        button(
+            getString(
+                R.string.recognition_mode_value,
+                getString(lectureMode() ? R.string.mode_lecture : R.string.mode_compatibility)),
+            false,
+            this::chooseRecognitionMode));
+    note(page, R.string.lecture_mode_help);
     note(page, R.string.audio_language);
     String[] codes = AUDIO_CODES;
     Spinner audio =
@@ -1120,6 +1256,7 @@ public final class MainActivity extends Activity {
     String current = prefs.getString("audio_language", "auto");
     for (int i = 0; i < codes.length; i++) if (codes[i].equals(current)) audio.setSelection(i);
     page.addView(audio);
+    audio.setEnabled(!lectureMode());
     note(page, R.string.audio_language_hint);
     audio.setOnItemSelectedListener(
         new AdapterView.OnItemSelectedListener() {
@@ -1385,6 +1522,7 @@ public final class MainActivity extends Activity {
     return getString(
         switch (value) {
           case "storage_low" -> R.string.storage_low;
+          case "memory_low" -> R.string.memory_low;
           case "thermal" -> R.string.thermal;
           case "microphone_permission" -> R.string.microphone_permission;
           case "microphone_unavailable" -> R.string.microphone_unavailable;
@@ -1471,7 +1609,11 @@ public final class MainActivity extends Activity {
       }
       String id =
           store.createLecture(
-              courseFilter, prefs.getString("audio_language", "auto"), false, "queued");
+              courseFilter,
+              prefs.getString("audio_language", "auto"),
+              false,
+              "queued",
+              recognitionEngine());
       store.addChunk(id, 0, uri.toString(), 0, true);
       openLecture(id);
       EngineService.command(this, EngineService.PROCESS, null);

@@ -340,7 +340,7 @@ public class ReportInstrumentedTest {
         assertTrue(cursor.moveToFirst());
         assertEquals("existing correction", cursor.getString(0));
         assertTrue(cursor.isNull(1));
-        assertEquals(3, migrated.getReadableDatabase().getVersion());
+        assertEquals(4, migrated.getReadableDatabase().getVersion());
       }
     } finally {
       context.deleteDatabase(name);

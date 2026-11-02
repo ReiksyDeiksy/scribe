@@ -1,4 +1,6 @@
 <resources>
+    <string name="patch_7_summary">Transcriere mai bună pentru cursurile tale</string>
+    <string name="patch_7_body">Am adăugat un nou mod Curs, cu un sistem de recunoaștere offline mai performant. În testele mele cu aceeași înregistrare, textul în română a fost mult mai clar. Vechiul sistem rămâne disponibil în modul Compatibilitate.\n\nÎnainte să înregistrezi sau să imporți, alege modul Curs din partea de sus a Bibliotecii. Acesta recunoaște limba română. Selectorul de limbă este folosit în modul Compatibilitate.\n\nPentru a-l încerca pe o înregistrare salvată, deschide cursul → Mai multe → Transcrie din nou. Se creează o transcriere separată, iar textul și corecturile originale sunt păstrate.\n\nNumerele și termenii medicali pot fi în continuare greșiți. Atinge un pasaj pentru a-l asculta și ține apăsat pentru a corecta textul. Modul Curs păstrează înregistrarea pentru verificare.\n\nAceastă actualizare este mai mare deoarece include noul model. Înregistrările rămân pe tableta ta. Trimite-mi un raport de problemă în conversația noastră dacă ceva pare greșit.</string>
     <string name="patch_notes">Noutăți</string>
     <string name="patch_history">Istoricul actualizărilor</string>
     <string name="patch_intro">Note scurte despre ce s-a schimbat și cum se folosește. Atinge o versiune pentru detalii.</string>

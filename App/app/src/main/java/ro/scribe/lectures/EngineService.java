@@ -94,7 +94,7 @@ public final class EngineService extends Service {
                 "build",
                 Diagnostics.build(this),
                 "recognition",
-                Diagnostics.recognition(),
+                Diagnostics.recognition(store.recognitionEngine(id)),
                 "sample_rate_hz",
                 Core.SAMPLE_RATE,
                 "audio_bitrate",
@@ -269,7 +269,8 @@ public final class EngineService extends Service {
     PowerManager power = getSystemService(PowerManager.class);
     PowerManager.WakeLock wake =
         power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "scribe:transcription");
-    Whisper model = null;
+    SpeechModel model = null;
+    String modelEngine = "";
     String retryLecture = "";
     int windowsSinceRetry = 6;
     long primaryBudget = 0, retrySpent = 0;
@@ -281,6 +282,8 @@ public final class EngineService extends Service {
         store.status(chunk.lecture(), "processing", "");
         List<Store.Chunk> sources = sequence(chunk);
         Store.Lecture lecture = store.lecture(chunk.lecture());
+        String engine = store.recognitionEngine(lecture.id());
+        boolean lectureMode = engine.equals(LectureModel.ENGINE);
         if (!retryLecture.equals(lecture.id())) {
           retryLecture = lecture.id();
           windowsSinceRetry = 6;
@@ -308,10 +311,15 @@ public final class EngineService extends Service {
               "build",
               Diagnostics.build(this),
               "recognition",
-              Diagnostics.recognition());
-          if (model == null) {
+              Diagnostics.recognition(engine));
+          if (model == null || !modelEngine.equals(engine)) {
+            if (model != null) {
+              model.close();
+              model = null;
+            }
             long before = SystemClock.elapsedRealtime();
-            model = new Whisper(this);
+            model = lectureMode ? new LectureModel(this, () -> cancelled) : new Whisper(this);
+            modelEngine = engine;
             Diagnostics.record(
                 this,
                 lecture.id(),
@@ -323,12 +331,14 @@ public final class EngineService extends Service {
                 "build",
                 Diagnostics.build(this),
                 "recognition",
-                Diagnostics.recognition());
+                Diagnostics.recognition(engine));
           }
-          final Whisper loaded = model;
+          final SpeechModel loaded = model;
           String known = store.detectedLanguage(lecture.id());
           final String[] language = {
-            lecture.language().equals("auto") && !known.isEmpty() ? known : lecture.language()
+            lectureMode
+                ? "auto"
+                : lecture.language().equals("auto") && !known.isEmpty() ? known : lecture.language()
           };
           List<Store.Segment> prior = store.segments(lecture.id());
           String previousText = "";
@@ -366,7 +376,7 @@ public final class EngineService extends Service {
                     if (rms >= 0.0015) {
                       long before = SystemClock.elapsedRealtime();
                       Whisper.Recognition first = loaded.recognize(samples, language[0], false);
-                      if (requestedLanguage.equals("auto"))
+                      if (!lectureMode && requestedLanguage.equals("auto"))
                         detectionProbability = first.languageProbability();
                       recognitionMs = SystemClock.elapsedRealtime() - before;
                       budgets[0] += recognitionMs;
@@ -376,7 +386,8 @@ public final class EngineService extends Service {
                       boolean suspicious =
                           SpeechQuality.suspicious(
                               text, first.averageLogProbability(), coverage, duration, rms);
-                      if (language[0].equals("auto")
+                      if (!lectureMode
+                          && language[0].equals("auto")
                           && samples.length >= Core.SAMPLE_RATE * 8
                           && first.languageProbability() >= 0.5
                           && Core.hasWords(text)
@@ -385,7 +396,8 @@ public final class EngineService extends Service {
                         store.recognitionState(lecture.id(), language[0], false);
                       }
                       // At most one extra pass per six windows, with a cumulative time budget.
-                      if (suspicious
+                      if (!lectureMode
+                          && suspicious
                           && duration >= 8000
                           && retryDistance[0] >= 6
                           && budgets[1] <= Math.max(15000, budgets[0] / 5)
@@ -427,7 +439,8 @@ public final class EngineService extends Service {
                       actualLanguage = selected.language();
                       confidence = selected.averageLogProbability();
                       review =
-                          retryFailed
+                          lectureMode
+                              || retryFailed
                               || SpeechQuality.suspicious(
                                   recognizedText(result),
                                   confidence,
@@ -445,7 +458,7 @@ public final class EngineService extends Service {
                       if (b <= checkpoint[0]) continue;
                       String text = segment.getString("text").trim();
                       // Only the overlapping beginning can duplicate the preceding passage.
-                      if (start + segment.getLong("start") < checkpoint[0])
+                      if (!lectureMode && start + segment.getLong("start") < checkpoint[0])
                         text = Core.trimOverlap(previous[0], text);
                       if (!Core.hasWords(text)
                           || text.matches("(?i)\\[.*(?:blank|silence|music).*\\]")) continue;
@@ -456,6 +469,7 @@ public final class EngineService extends Service {
                       pieces.add(new Store.Piece(a, b, text));
                       previous[0] = text;
                     }
+                    if (lectureMode) pieces = LectureWords.passages(pieces);
                     if (review) store.recognitionState(lecture.id(), "", true);
                     synchronized (completionLock) {
                       if (cancelled) throw new IOException("cancelled");
@@ -486,12 +500,14 @@ public final class EngineService extends Service {
                         pieces.size(),
                         "language",
                         actualLanguage,
+                        "recognition_engine",
+                        engine,
                         "language_requested",
                         requestedLanguage,
                         "language_detection_probability",
                         detectionProbability,
                         "average_log_probability",
-                        confidence,
+                        lectureMode ? JSONObject.NULL : confidence,
                         "beam_retry",
                         retried,
                         "review_required",
@@ -499,7 +515,8 @@ public final class EngineService extends Service {
                     windowBeganMs = 0;
                     checkingSpeech = false;
                     decodeStarted[0] = SystemClock.elapsedRealtime();
-                  });
+                  },
+                  lectureMode);
           for (Store.Chunk source : store.chunks(lecture.id())) {
             if (sources.stream().noneMatch(s -> s.id() == source.id())
                 || source.state().equals("done")) continue;
@@ -551,7 +568,7 @@ public final class EngineService extends Service {
             if (!source.state().equals("done"))
               store.chunkState(source.id(), stopped || source.id() != bad ? "ready" : "error");
           store.status(lecture.id(), stopped ? "cancelled" : "error", stopped ? "" : code(error));
-          if (List.of("storage_low", "thermal")
+          if (List.of("storage_low", "thermal", "memory_low")
               .contains(error.getMessage() == null ? "" : error.getMessage())) break;
         } finally {
           windowBeganMs = 0;
@@ -595,6 +612,7 @@ public final class EngineService extends Service {
     if (s != null
         && List.of(
                 "storage_low",
+                "memory_low",
                 "thermal",
                 "cancelled",
                 "microphone_permission",

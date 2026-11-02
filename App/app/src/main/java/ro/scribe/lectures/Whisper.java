@@ -11,7 +11,7 @@ import java.security.MessageDigest;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public final class Whisper implements AutoCloseable {
+public final class Whisper implements SpeechModel {
   static {
     System.loadLibrary("scribe");
   }

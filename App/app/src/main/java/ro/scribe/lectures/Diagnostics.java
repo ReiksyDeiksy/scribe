@@ -52,7 +52,41 @@ final class Diagnostics {
   }
 
   static JSONObject recognition() {
+    return recognition("whisper");
+  }
+
+  static JSONObject recognition(String engine) {
+    if (engine.equals(LectureModel.ENGINE))
+      return object(
+          "engine",
+          engine,
+          "model",
+          LectureModel.MODEL,
+          "runtime",
+          "sherpa-onnx-2.0.1",
+          "backend",
+          "CPU",
+          "threads",
+          Math.max(1, Math.min(3, Runtime.getRuntime().availableProcessors() - 1)),
+          "sampling",
+          "greedy_search",
+          "initial_prompt",
+          false,
+          "continuous_sources",
+          true,
+          "auto_language",
+          "model_multilingual_auto_no_forced_language",
+          "window_ms",
+          30000,
+          "maximum_final_window_ms",
+          38000,
+          "overlap_ms",
+          2000,
+          "sample_rate_hz",
+          Core.SAMPLE_RATE);
     return object(
+        "engine",
+        "whisper",
         "model",
         Whisper.MODEL,
         "model_sha256",

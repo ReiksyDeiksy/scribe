@@ -22,6 +22,80 @@ import org.junit.runner.RunWith;
 
 @RunWith(AndroidJUnit4.class)
 public class UiInstrumentedTest {
+  @Test
+  public void lectureModeSelectorIsBilingualAndKeepsCompatibilityLanguageSetting()
+      throws Exception {
+    var instrumentation = InstrumentationRegistry.getInstrumentation();
+    Context context = instrumentation.getTargetContext();
+    var prefs = context.getSharedPreferences("settings", 0);
+    var saved = new java.util.HashMap<>(prefs.getAll());
+    Activity activity = null;
+    try {
+      for (String language : new String[] {"en", "ro"}) {
+        prefs
+            .edit()
+            .putString("ui_language", language)
+            .putString("recognition_engine", LectureModel.ENGINE)
+            .putInt(PatchNotes.SEEN_VERSION, PatchNotes.latest().code())
+            .commit();
+        activity =
+            instrumentation.startActivitySync(
+                new Intent(context, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        instrumentation.waitForIdleSync();
+        Activity current = activity;
+        assertNull(
+            languageButton(
+                current.getWindow().getDecorView(),
+                current.getString(R.string.lecture_language_value, "")));
+        screenshot(context, "lecture-library-" + language);
+        for (String engine : new String[] {"whisper", LectureModel.ENGINE}) {
+          instrumentation.runOnMainSync(
+              () ->
+                  languageButton(
+                          current.getWindow().getDecorView(),
+                          current.getString(R.string.recognition_mode_value, ""))
+                      .performClick());
+          instrumentation.waitForIdleSync();
+          String label =
+              current.getString(
+                  engine.equals("whisper") ? R.string.mode_compatibility : R.string.mode_lecture);
+          AccessibilityNodeInfo root = instrumentation.getUiAutomation().getRootInActiveWindow();
+          boolean clicked = false;
+          for (AccessibilityNodeInfo node : root.findAccessibilityNodeInfosByText(label))
+            if (label.contentEquals(node.getText())) {
+              assertTrue(node.performAction(AccessibilityNodeInfo.ACTION_CLICK));
+              clicked = true;
+              break;
+            }
+          assertTrue(clicked);
+          instrumentation.waitForIdleSync();
+          assertEquals(engine, prefs.getString("recognition_engine", null));
+          assertEquals(
+              engine.equals("whisper"),
+              languageButton(
+                      current.getWindow().getDecorView(),
+                      current.getString(R.string.lecture_language_value, ""))
+                  != null);
+        }
+        instrumentation.runOnMainSync(current::finish);
+        activity = null;
+      }
+    } finally {
+      if (activity != null) {
+        Activity current = activity;
+        instrumentation.runOnMainSync(current::finish);
+      }
+      var edit = prefs.edit();
+      for (String key :
+          new String[] {"ui_language", "recognition_engine", PatchNotes.SEEN_VERSION}) {
+        if (!saved.containsKey(key)) edit.remove(key);
+        else if (saved.get(key) instanceof String value) edit.putString(key, value);
+        else edit.putInt(key, (Integer) saved.get(key));
+      }
+      edit.commit();
+    }
+  }
+
   private static Button languageButton(View view, String prefix) {
     if (view instanceof Button button && button.getText().toString().startsWith(prefix))
       return button;
@@ -40,6 +114,8 @@ public class UiInstrumentedTest {
     var prefs = context.getSharedPreferences("settings", 0);
     String oldUi = prefs.getString("ui_language", null),
         oldAudio = prefs.getString("audio_language", null);
+    String oldEngine = prefs.getString("recognition_engine", null);
+    prefs.edit().putString("recognition_engine", "whisper").commit();
     boolean hadSeen = prefs.contains(PatchNotes.SEEN_VERSION);
     int oldSeen = prefs.getInt(PatchNotes.SEEN_VERSION, 0);
     Activity activity = null;
@@ -98,6 +174,7 @@ public class UiInstrumentedTest {
         instrumentation.runOnMainSync(current::finish);
       }
       var edit = prefs.edit().putString("ui_language", oldUi).putString("audio_language", oldAudio);
+      edit.putString("recognition_engine", oldEngine);
       if (hadSeen) edit.putInt(PatchNotes.SEEN_VERSION, oldSeen);
       else edit.remove(PatchNotes.SEEN_VERSION);
       edit.commit();

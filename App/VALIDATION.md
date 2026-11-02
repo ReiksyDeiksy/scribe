@@ -1,3 +1,145 @@
+# Offline Lecture recognition — 2 November 2026
+
+Version `0.2.0-test`, versionCode `7`, adds Parakeet TDT 0.6B v3 INT8 through
+the pinned sherpa-onnx 2.0.1 Android C API. The old Whisper path remains available
+as Compatibility. New app recordings/imports default to Lecture; existing jobs
+retain their engine through the non-destructive database-v4 migration. The new
+model identifies its supported languages automatically. Fixed-language selection
+and persisted Whisper language detection are explicitly Compatibility features.
+
+Model files total 670,478,772 bytes. The manifest pins revision and file sizes /
+SHA-256; the preparation script verifies the public runtime archive/header and
+copies only the expected regular library entries. Both packaged ABIs' runtime
+library hashes are checked in the APK audit, as are 16 KiB LOAD/ZIP alignment,
+both models, legal assets and the asset allowlist. No new permissions or Gradle
+dependencies. No network permission, server, credentials, user audio or private
+fixtures in the APK. Model/runtime attribution and licenses are included.
+
+Lecture mode uses greedy TDT decoding and timed words, not the previous retry
+schedule or a supplied reference transcript. It trims committed word overlap
+before grouping readable passages. A bounded eight-second lookahead merges short
+final tails into windows no longer than 38 seconds; non-final windows remain
+30 seconds with two-second overlap. Numbers are underlined without guessing
+corrections. Review is always required in Lecture mode, and audio is retained
+regardless of the Compatibility deletion preference. Whisper-specific confidence
+and detected-language fields are null/empty for Lecture mode. Raw TDT token
+scores are not collected or presented as accuracy measures.
+
+More > Transcribe again copies every retained source on a worker, then creates
+a separate lecture with the selected mode, course and copied marks. Original
+text, corrections and audio are unchanged; missing sources/cancellation/low
+storage fail without rewriting them. A background-start refusal leaves the new
+job queued for an explicit Continue. A native call is bounded but not abortable:
+pause discards its unsaved result after it finishes. Available memory is checked
+before model loading (1280 MiB and no system low-memory signal).
+
+The current note uses the user's supplied English wording, bold heading and
+`With love` / `Your Danny~` closing, with a Romanian translation. Existing notes
+keep their earlier closings. Help explains both modes, number review, retention,
+copying and a short classroom recording trial.
+
+Verification:
+
+- Final release/debug builds, both lint tasks (**No issues found**) and **11/11
+  JVM tests** passed. PCM tests check every sample across recording boundaries,
+  tiny-tail merging, unchanged Compatibility behavior and bounded three-hour
+  buffers. Models and signed release APK pass the strict payload/runtime audit.
+- Final signed APK: **30 Android regression checks passed**, plus the opt-in
+  private replay skipped by default (`OK (31 tests)`, 163.178 seconds). Coverage
+  includes microphone rollover/pause/screen-off, AAC resume, both real speech
+  engines, cancellation, word times, literal numbers/negations, copied audio,
+  preserved edits/marks, missing-source cleanup, v1/v2/v3 upgrades, FTS, reporting
+  and read grants, mode/language persistence, bilingual themes/progress/help and
+  versioned notes. A prior full run also passed (159.421 seconds).
+- Affected phone UI checks passed at 1080 x 2400 / 420 dpi / 1.3 font scale:
+  **7/7**, 49.061 seconds before the final queued-start/memory-guard/help updates.
+  Library and patch-note captures were visually reviewed; display/font overrides
+  were reset. Final phone verification is recorded below.
+- The final version was installed over the existing signed version 6 without
+  uninstalling or clearing data. A direct pre/post install hash comparison was
+  unavailable because the old release disallowed `run-as`; the attempted hash
+  evidence is labelled unavailable. Schema migration preservation is verified by
+  dedicated v1/v2/v3 database tests, not claimed from those invalid hash captures.
+- Report inspector: **3/3 Python checks passed**. Portable report schema remains
+  1, with extra per-lecture/window engine metadata and truthful unavailable fields.
+
+Paired real-queue replay of the same 114.944-second, two-source supplied reading
+on the same Android 15 x86_64 emulator:
+
+| Measurement | 0.1.5-test | Final 0.2.0-test |
+| --- | ---: | ---: |
+| Wall time | 123.967 s | 13.547 s |
+| Recognition windows | 5 | 4 |
+
+This one paired replay used **89.07% less wall time**. Wording is substantially
+clearer against the supplied slides: the split `pneumonii` fragments are repaired,
+and many terms are recovered. Remaining errors include `accesul` for the slide's
+`abcesul`, and numeric ranges can be merged into ordinary numbers. No verbatim
+spoken reference exists, so no whole-recording WER or percentage-correct claim is
+made. Better-looking text is not independent evidence of clinical accuracy.
+
+A separate final-release pause/resume reading replay passed in 19.689 seconds
+of measured wall time, preserving a correction made between runs and every
+source file. Sampled process PSS peaked at 1,188,472 KiB (about 1.13 GiB), higher
+than a model-only probe's 935 MiB RSS. These are different memory measurements,
+not interchangeable hardware requirements or guarantees.
+
+The final signed APK passed a sustained replay of **3:00:04.736** of input audio
+(the 114.944-second reading repeated 94 times into 188 source files) in
+**922.431 seconds (15:22.431)** of measured wall time. The test paused after ten
+minutes of committed audio, inserted a correction, resumed, and verified that
+the correction and all 188 source files remained. All chunks completed; the
+final audio endpoint was exactly 10,804,736 ms. There were 386 windows and 1,764
+passages, with 675.539 seconds of recognition and 228.756 seconds of decoding.
+Sampled process PSS peaked at **1,186,619 KiB (about 1.13 GiB)** without sustained
+growth. The only historical processing error was the deliberate cancellation;
+the final status was done with no error. The last periodic progress sample
+preceded completion; the final export and assertions verify the full duration.
+The JUnit runner passed in 924.120 seconds (`OK (1 test)`).
+
+The exact final APK also passed **7/7 narrow-screen UI checks in 52.079 seconds**
+at 1080 x 2400 / 420 dpi / 1.3 font scale. The checks cover mode selection,
+progress, Help and the English/Romanian notes with light/dark themes. Captures
+are retained under `artifacts/qa/lecture/phone/`; display/font overrides were
+reset after the run.
+
+Additional local evaluation (private inputs never left the computer):
+
+- Parakeet Android native probe: 30 seconds in 1.430 seconds after a 1.731-second
+  load, peak RSS 957,232 KiB. This isolates the runtime, not the full app.
+- PC Qwen3-ASR 0.6B INT8 comparison was slower and less accurate on these samples;
+  it was not integrated or shipped. Whisper Small was already slower on the same
+  reading. No evaluation slide or glossary was fed to any candidate.
+- Four surviving clips from the older classroom report still produce unreliable
+  results with Parakeet. Simple 4×/16×/64× gain tests did not establish a repair,
+  so no speculative gain/noise-processing change was shipped. Those clips lack
+  a spoken reference, and most of that old lecture's audio was already missing.
+  This update does not establish dependable classroom/medical accuracy on them.
+
+Physical Samsung sustained capture, speed, thermal/battery behavior and classroom
+accuracy still require on-device evidence. Replaying repeated source audio for
+three hours tests queue length/recovery/memory, not three hours of live microphone
+capture, changing lecture conditions or independently measured word accuracy.
+
+Prepared update:
+`artifacts/private-release/scribe-0.2.0-test-vc7-lecture-9ba09c99/scribe-0.2.0-test-vc7.apk`
+(798,072,399 bytes). SHA-256:
+`9ba09c999b2e7c551ac0efcc89bce1edf8186a65ddbda61115b1283c1600d173`.
+Existing signing certificate:
+`c42170e8641cdf6309457bfc4850169d94a0e05fac47a82ab6b088d73d8ac44d`.
+The exact patch note, installation guide, checksum, public signing metadata and
+audit are beside it. Prior packages remain unchanged. No sending/publishing.
+
+Evidence: `lecture-final-build.log`, `lecture-final-regression.log`,
+`lecture-phone-tests.log`, `lecture-final-phone.log`,
+`lecture-baseline-replay.log`, `lecture-final-replay.log`,
+`lecture-release-pause.log`, `lecture-three-hours.log`, `lecture-final-audit.log`,
+`lecture-final-signature.log`; UI captures under `artifacts/qa/lecture/`.
+Content-free paired and sustained summaries are under `artifacts/qa/lecture/`.
+Private comparisons and progress/memory records stay in ignored analysis storage.
+
+---
+
 # Balanced transcription and visible progress — 2 November 2026
 
 Version `0.1.5-test`, versionCode `6`, fixes recognized-text prompting that could

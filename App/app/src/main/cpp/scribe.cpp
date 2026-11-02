@@ -4,7 +4,9 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include <memory>
 #include "whisper.h"
+#include "sherpa-c-api.h"
 
 namespace {
 std::atomic<bool> cancelled{false};
@@ -24,6 +26,58 @@ std::string escape(const char * text) {
     return out;
 }
 void fail(JNIEnv * env, const char * message) { env->ThrowNew(env->FindClass("java/io/IOException"), message); }
+}
+
+extern "C" JNIEXPORT jlong JNICALL Java_ro_scribe_lectures_LectureModel_open(JNIEnv *env, jclass, jstring directory, jint threads) {
+    const char *path = env->GetStringUTFChars(directory, nullptr);
+    if (!path) return 0;
+    std::string root(path); env->ReleaseStringUTFChars(directory, path);
+    std::string encoder = root + "/encoder.int8.onnx", decoder = root + "/decoder.int8.onnx";
+    std::string joiner = root + "/joiner.int8.onnx", tokens = root + "/tokens.txt";
+    SherpaOnnxOfflineRecognizerConfig config{};
+    config.feat_config.sample_rate = 16000; config.feat_config.feature_dim = 80;
+    config.model_config.transducer.encoder = encoder.c_str();
+    config.model_config.transducer.decoder = decoder.c_str();
+    config.model_config.transducer.joiner = joiner.c_str();
+    config.model_config.tokens = tokens.c_str();
+    config.model_config.num_threads = std::clamp(static_cast<int>(threads), 1, 3);
+    config.model_config.model_type = "nemo_transducer";
+    config.model_config.provider = "cpu"; config.decoding_method = "greedy_search";
+    try {
+        auto *recognizer = SherpaOnnxCreateOfflineRecognizer(&config);
+        if (!recognizer) fail(env, "Could not load lecture model");
+        return reinterpret_cast<jlong>(recognizer);
+    } catch (...) { fail(env, "Could not load lecture model"); return 0; }
+}
+
+extern "C" JNIEXPORT void JNICALL Java_ro_scribe_lectures_LectureModel_close(JNIEnv *, jclass, jlong handle) {
+    SherpaOnnxDestroyOfflineRecognizer(reinterpret_cast<const SherpaOnnxOfflineRecognizer *>(handle));
+}
+
+extern "C" JNIEXPORT jbyteArray JNICALL Java_ro_scribe_lectures_LectureModel_decode(JNIEnv *env, jclass, jlong handle, jfloatArray input) {
+    auto *recognizer = reinterpret_cast<const SherpaOnnxOfflineRecognizer *>(handle);
+    int count = env->GetArrayLength(input);
+    if (!recognizer || count < 1 || count > 16000 * 38) { fail(env, "Invalid audio window"); return nullptr; }
+    if (cancelled.load()) { fail(env, "cancelled"); return nullptr; }
+    try {
+        std::vector<float> pcm(count); env->GetFloatArrayRegion(input, 0, count, pcm.data());
+        if (env->ExceptionCheck()) return nullptr;
+        using Stream = std::unique_ptr<const SherpaOnnxOfflineStream, decltype(&SherpaOnnxDestroyOfflineStream)>;
+        Stream stream(SherpaOnnxCreateOfflineStream(recognizer), SherpaOnnxDestroyOfflineStream);
+        if (!stream) { fail(env, "Speech recognition failed"); return nullptr; }
+        SherpaOnnxAcceptWaveformOffline(stream.get(), 16000, pcm.data(), count);
+        SherpaOnnxDecodeOfflineStream(recognizer, stream.get());
+        // The runtime cannot abort an in-flight call. Cancel before saving any of its result.
+        if (cancelled.load()) { fail(env, "cancelled"); return nullptr; }
+        using Result = std::unique_ptr<const SherpaOnnxOfflineRecognizerResult, decltype(&SherpaOnnxDestroyOfflineRecognizerResult)>;
+        Result result(SherpaOnnxGetOfflineStreamResult(stream.get()), SherpaOnnxDestroyOfflineRecognizerResult);
+        if (!result || !result->json) { fail(env, "Speech recognition failed"); return nullptr; }
+        std::string json(result->json);
+        if (json.size() > 4 * 1024 * 1024) { fail(env, "Invalid speech result"); return nullptr; }
+        jbyteArray output = env->NewByteArray(static_cast<jsize>(json.size()));
+        if (output) env->SetByteArrayRegion(output, 0, static_cast<jsize>(json.size()), reinterpret_cast<const jbyte *>(json.data()));
+        return output;
+    } catch (...) { fail(env, "Speech recognition failed"); return nullptr; }
 }
 
 extern "C" JNIEXPORT jlong JNICALL Java_ro_scribe_lectures_Whisper_open(JNIEnv * env, jclass, jstring path) {

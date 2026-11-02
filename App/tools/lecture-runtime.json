@@ -1,0 +1,14 @@
+{
+  "version": "2.0.1",
+  "archive_sha256": "39003753ec293425ed56723ea9b972b98841a490af3311670c3060548d654330",
+  "libraries": {
+    "arm64-v8a": {
+      "libonnxruntime.so": "33847ad43bffe204699fd4a27f7f3603452a8cdaf2f9a44983a0bc31ffcf2da1",
+      "libsherpa-onnx-c-api.so": "0eadae93c4d595a26584d7eebde7b397b9a36d01eee3ebc7262e0d34df2fce10"
+    },
+    "x86_64": {
+      "libonnxruntime.so": "087e84297cad64acb823c3d901d6e0cc934e91add7cdb20da802cd1c0bea5c3e",
+      "libsherpa-onnx-c-api.so": "8285ecf2e6275374d4c8c5b46020cbb1de82db9bd6b6baad011fdc480cf10ba2"
+    }
+  }
+}

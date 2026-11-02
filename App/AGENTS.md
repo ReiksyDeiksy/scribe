@@ -17,5 +17,7 @@
 - Explicit wording for a particular update overrides that default closing.
   Version 0.1.5-test uses `I love youuuu` then `Danny~` instead, in both locales.
   Do not append both closings. Earlier notes retain their existing closing.
+- Version 0.2.0-test uses the supplied lecture-mode note and the closing
+  `With love` then `Your Danny~`, in both locales. Keep its English wording exact.
 - Build and verify the signed update APK with the existing signing key and a
   higher versionCode. Preserve previous distribution packages and app data.

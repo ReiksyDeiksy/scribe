@@ -5,14 +5,19 @@ import java.util.Arrays;
 /** One bounded recognition buffer; recording-file boundaries do not flush it. */
 final class PcmWindows {
   private final AudioDecoder.Window consumer;
-  private final float[] buffer = new float[Core.WINDOW_SAMPLES];
+  private final float[] buffer;
   private int size;
   private long start;
   private boolean emitted;
 
   PcmWindows(long start, AudioDecoder.Window consumer) {
+    this(start, consumer, false);
+  }
+
+  PcmWindows(long start, AudioDecoder.Window consumer, boolean mergeShortTail) {
     this.start = start;
     this.consumer = consumer;
+    buffer = new float[Core.WINDOW_SAMPLES + (mergeShortTail ? Core.SAMPLE_RATE * 8 : 0)];
   }
 
   void append(float[] samples, int offset, int count) throws Exception {
@@ -23,9 +28,10 @@ final class PcmWindows {
       offset += take;
       count -= take;
       if (size == buffer.length) {
-        consumer.accept(start, Arrays.copyOf(buffer, size));
-        System.arraycopy(buffer, size - Core.OVERLAP_SAMPLES, buffer, 0, Core.OVERLAP_SAMPLES);
-        size = Core.OVERLAP_SAMPLES;
+        consumer.accept(start, Arrays.copyOf(buffer, Core.WINDOW_SAMPLES));
+        int step = Core.WINDOW_SAMPLES - Core.OVERLAP_SAMPLES;
+        System.arraycopy(buffer, step, buffer, 0, size - step);
+        size -= step;
         start += 28000;
         emitted = true;
       }

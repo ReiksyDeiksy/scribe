@@ -43,6 +43,13 @@ Each archive uses schema version 1 and includes:
   Since 0.1.5-test, windows also include the used/requested language, detection
   probability when detection ran, average token log probability, bounded beam
   retry time and review flags. These are diagnostic signals, not accuracy scores.
+  Since 0.2.0-test, lecture/window metadata also identifies the selected engine.
+  Lecture mode automatically identifies supported languages; its adapter does
+  not expose a language label. Whisper-specific confidence fields are null.
+  Raw TDT token scores are not collected or used as accuracy scores. These fields
+  are not inferred from the user's Compatibility language preference.
+  Returned units are words for Lecture mode; accepted units are grouped passages.
+  Their counts cannot be compared directly with Compatibility segment counts.
 - Optional `transcript.txt` and `transcript.json`: selected overlapping passages.
   A passage overlapping a time range is included in full, as explained in the
   preview. JSON includes both current text and preserved original recognised
@@ -84,6 +91,8 @@ user reviews and explicitly shares each report.
   Version 3 adds persisted detected language and a conservative review flag.
   Existing lectures have automatic audio deletion disabled on upgrade, preserving
   remaining recordings. Review flags keep audio and do not discard recognized text.
+  Version 4 adds the per-lecture engine and preserves existing jobs as Compatibility.
+  New Lecture jobs always retain audio and remain marked for review.
 - A ZIP is a portable evidence bundle, not an executable test or app backup.
   `tools/inspect_report.py` validates attachment sizes/checksums and summarizes
   available timings without extracting or executing the archive. Window timing

@@ -194,6 +194,7 @@ public class PatchNotesInstrumentedTest {
                     + "\n\n"
                     + activity.getString(PatchNotes.latest().signoff())));
         assertEquals("I love youuuu\nDanny~", activity.getString(PatchNotes.find(6).signoff()));
+        assertEquals("With love\nYour Danny~", activity.getString(PatchNotes.find(7).signoff()));
         screenshot("patch-window-" + language + (dark ? "-dark" : "-light"));
         dialogButton(R.string.patch_history);
         instrumentation.runOnMainSync(

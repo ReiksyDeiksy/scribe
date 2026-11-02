@@ -1,0 +1,16 @@
+<resources>
+    <string name="pausing_section">Pausing after the current section…</string>
+    <string name="new_transcript_queued">The new transcript is saved. Open it and tap Continue transcription to start when the app is active.</string>
+    <string name="memory_low">Lecture mode needs more free memory. Close other apps and retry, or use Compatibility mode for a new transcript. Your audio is kept.</string>
+    <string name="recognition_mode">Transcription mode</string>
+    <string name="recognition_mode_value">Transcription: %1$s</string>
+    <string name="mode_lecture">Lecture</string>
+    <string name="mode_compatibility">Compatibility</string>
+    <string name="lecture_mode_hint">Lecture mode · automatic language · audio kept</string>
+    <string name="lecture_mode_help">Lecture mode recognises Romanian, English and 23 other European languages automatically. Use Compatibility for a fixed language or Turkish. Numbers are underlined for checking; medical terms can also be wrong. Lecture mode always keeps audio.</string>
+    <string name="transcribe_again">Transcribe again</string>
+    <string name="transcribe_again_hint">Create a separate transcript with %1$s mode from the retained audio. Your original text, corrections and recording stay unchanged. All source audio must still be available.</string>
+    <string name="copying_audio">Preparing a new transcript…</string>
+    <string name="new_transcript_title">%1$s · new transcript</string>
+    <string name="copy_audio_failed">Could not copy all audio. Check that it is still available and there is enough free storage. Your original lecture is unchanged.</string>
+</resources>

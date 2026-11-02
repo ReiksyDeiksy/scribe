@@ -1,0 +1,23 @@
+Offline lecture recognition
+
+Parakeet TDT 0.6B v3 model: NVIDIA Corporation, released 2025.
+Original: https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3
+Model license: Creative Commons Attribution 4.0 International (CC BY 4.0).
+https://creativecommons.org/licenses/by/4.0/
+The model is provided without warranties. No endorsement by NVIDIA is implied.
+
+INT8 ONNX conversion: Fangjun Kuang and the sherpa-onnx project.
+https://huggingface.co/csukuangfj/sherpa-onnx-nemo-parakeet-tdt-0.6b-v3-int8
+Revision 2bda32ec70b097a55adaa07d9a7173915b43cc78.
+Changes from the original model: conversion to ONNX and INT8 quantization.
+
+sherpa-onnx 2.0.1: k2-fsa contributors, Apache License 2.0.
+https://github.com/k2-fsa/sherpa-onnx/tree/v2.0.1
+License: sherpa-onnx-Apache-2.0.txt in this directory.
+
+ONNX Runtime 1.28.2: Microsoft Corporation and contributors, MIT License.
+https://github.com/microsoft/onnxruntime/tree/v1.28.2
+License and third-party notices are included in this directory.
+
+Transcription remains fallible. Check medical terms, negations and numbers
+against the retained recording. These models do not provide clinical advice.

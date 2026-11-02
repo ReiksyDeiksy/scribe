@@ -1,6 +1,33 @@
 # Private APK distribution
 
-## Current update: balanced transcription and progress, 2 November 2026
+## Current update: offline Lecture mode, 2 November 2026
+
+Version `0.2.0-test`, versionCode **7**, adds the stronger Parakeet TDT v3 INT8
+recognizer as the default Lecture mode for new recordings/imports. Compatibility
+keeps the previous model and fixed-language selector. Existing jobs retain their
+engine. More > Transcribe again copies retained audio into a separate transcript,
+preserving the original text/corrections and copying course/marks. Lecture mode
+keeps audio and underlines numbers for checking. See `TRANSCRIPTION.md`.
+
+Prepared package:
+`artifacts/private-release/scribe-0.2.0-test-vc7-lecture-9ba09c99/`.
+Send `scribe-0.2.0-test-vc7.apk` as a file. It is **798,072,399 bytes** (about
+798 MB). The models/runtime are bundled; no account, server or Internet permission
+is added. Recommend at least 2.5 GB of free storage for installation/preparation.
+Lecture recognition needs about 1 GB of process working memory and checks at
+least 1280 MiB available before loading. Physical Samsung behavior still needs
+testing; the emulator results are not a tablet speed/accuracy guarantee.
+
+Install over the existing app; do not uninstall or clear data. App ID and signing
+key are unchanged. The installation guide, SHA-256, public signing metadata,
+payload audit and exact English patch note are beside the APK. The supplied
+current note closes with `With love` then `Your Danny~`, in both locales. Older
+notes retain their existing closings. Use versionCode **8 or greater** next.
+
+The prior packages remain unchanged. No sending, uploading or publishing has
+been performed. Model/runtime source and third-party notices are bundled.
+
+## Previous update: balanced transcription and progress, 2 November 2026
 
 Version `0.1.5-test`, versionCode **6**, removes recognized-text prompting,
 streams recognition windows across contiguous recording files, stabilizes Auto
@@ -112,7 +139,7 @@ Herstelleranleitung:
 ## Nächstes Update vorbereiten
 
 1. In `app/build.gradle` den `versionCode` auf einen bisher nicht verwendeten,
-   höheren Wert setzen; nach dem aktuellen Paket mindestens `7`. Einen passenden
+   höheren Wert setzen; nach dem aktuellen Paket mindestens `8`. Einen passenden
    `versionName` vergeben. Immer kurze englische und rumänische Patch Notes samt
    nötiger Bedienhinweise ergänzen und die vorherigen Einträge behalten.
 2. `applicationId 'ro.scribe.lectures'` und den bestehenden Signaturschlüssel
